@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC Connect - Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="module" src="home.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { purple: '#381A8B', orange: '#FF7A45' } },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #F8F9FA; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 1. DESKTOP SIDEBAR CSS (Smooth Hover) */
+        #desktop-sidebar {
+            width: 5.5rem; /* Slim state */
+            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        /* Expands when hovered */
+        #desktop-sidebar:hover {
+            width: 17rem;
+            box-shadow: 10px 0 25px rgba(0,0,0,0.05);
+        }
+        #desktop-sidebar .nav-text {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        #desktop-sidebar:hover .nav-text {
+            opacity: 1;
+            transform: translateX(0);
+            transition-delay: 0.1s; 
+            pointer-events: auto;
+        }
+
+        /* 2. MOBILE SIDEBAR CSS */
+        #mobile-sidebar {
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        #mobile-overlay {
+            transition: opacity 0.3s ease;
+        }
+
+        /* 3. OTHER ANIMATIONS */
+        .footer-hidden { transform: translateY(150%); opacity: 0; pointer-events: none; }
+        .fab-hidden { transform: translateY(30px) scale(0.8); opacity: 0; pointer-events: none; }
+        #sticky-footer, #restore-footer-btn { transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-enter { animation: slideDownFade 0.6s ease forwards; }
+
+        #notification-wrapper { pointer-events: none; }
+        #notification-wrapper.active { pointer-events: auto; }
+        #notification-backdrop { opacity: 0; transition: opacity 0.3s ease; }
+        #notification-wrapper.active #notification-backdrop { opacity: 1; }
+        #notification-box { opacity: 0; transform: scale(0.95) translateY(-10px); transition: all 0.3s ease; }
+        #notification-wrapper.active #notification-box { opacity: 1; transform: scale(1) translateY(0); }
+    </style>
+</head>
+<body class="h-screen flex text-gray-800 selection:bg-brand-orange selection:text-white">
+
+    <div id="mobile-overlay" class="fixed inset-0 bg-brand-purple/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
+
+    <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl">
+        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-orange transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center px-6 mb-8 shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-brand-purple/10 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-leaf text-brand-purple text-xl"></i>
+            </div>
+            <span class="font-bold text-brand-purple ml-4 text-lg tracking-tight">EC <span class="text-brand-orange">Connect</span></span>
+        </div>
+
+        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto">
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-orange bg-orange-50 text-brand-purple">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center text-brand-purple"></i>
+                <span class="ml-4 font-semibold text-[15px]">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">CivicFeed</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+                <i class="fa-regular fa-file-lines text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">Request</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+                <i class="fa-solid fa-chart-pie text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">Reports</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">Appointments</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">Settings</span>
+            </a>
+        </nav>
+
+        <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            
+            <a href="profile.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 overflow-hidden cursor-pointer transition-colors w-full">
+                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=381A8B&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] rounded-br-none py-6 border-r border-gray-100">
+        
+        <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
+            <div class="w-10 h-10 rounded-xl bg-brand-purple/10 flex items-center justify-center shrink-0 hover:bg-brand-orange/20 transition-colors cursor-pointer">
+                <i class="fa-solid fa-leaf text-brand-purple text-xl"></i>
+            </div>
+            <span class="nav-text font-bold text-brand-purple ml-4 text-lg tracking-tight cursor-default">EC<span class="text-brand-orange">Connect</span></span>
+        </div>
+
+        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto">
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-orange bg-orange-50 text-brand-purple">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-semibold text-[15px]">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">CivicFeed</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+                <i class="fa-regular fa-file-lines text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">Request</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+                <i class="fa-solid fa-chart-pie text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">Reports</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">Appointments</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">Settings</span>
+            </a>
+        </nav>
+
+        <div class="mt-auto px-3 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            
+            <a href="profile.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-100 overflow-hidden w-full">
+                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=381A8B&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 lg:ml-[5.5rem] flex flex-col relative min-w-0 w-full h-screen">
+        
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#F8F9FA]/80 backdrop-blur-md z-30 sticky top-0">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-brand-purple hover:bg-white hover:shadow-sm rounded-full transition-all focus:outline-none -ml-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+
+                <div class="text-sm font-medium text-gray-400">Portal / <span class="text-brand-purple font-semibold">Dashboard</span></div>
+            </div>
+            
+            <button onclick="toggleNotifications()" class="w-10 h-10 rounded-full hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm flex items-center justify-center transition-all text-brand-purple relative focus:outline-none group">
+                <i class="fa-regular fa-bell text-xl group-hover:animate-bounce"></i>
+                <span class="absolute top-2 right-2.5 w-2 h-2 bg-brand-orange rounded-full border border-white"></span>
+            </button>
+        </header>
+
+        <div id="main-scroll-area" class="flex-1 overflow-y-auto px-4 md:px-10 pb-40 pt-2 relative z-10 transition-[padding] duration-300">
+            <div class="max-w-7xl mx-auto">
+                
+                <div class="mb-8 animate-enter opacity-0">
+                    <div class="relative w-full h-48 md:h-56 rounded-3xl overflow-hidden shadow-sm">
+                        <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1773930615/HomepageBlk2-Image-AboutRosario_lef5zu.jpg" alt="Community" class="absolute inset-0 w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-r from-brand-purple/90 via-black/50 to-transparent"></div>
+                        <div class="absolute inset-0 p-8 md:p-10 flex flex-col justify-center">
+                            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-md">Magandang araw, <span id="welcome-name">Citizen</span>!</h1>
+                            <p class="text-gray-200 font-medium md:text-lg drop-shadow-md">What would you like to do today?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-file-signature text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Services</span>
+                    </button>
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-book-open-reader text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Citizen Guide</span>
+                    </button>
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-laptop-code text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">e-Services</span>
+                    </button>
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-truck-medical text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Emergency</span>
+                    </button>
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-graduation-cap text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Students</span>
+                    </button>
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-lightbulb text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Startup</span>
+                    </button>
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-store text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Business</span>
+                    </button>
+                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
+                            <i class="fa-solid fa-arrow-right-long text-brand-orange text-xl group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">View All</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="sticky-footer" class="absolute bottom-0 left-0 w-full bg-brand-purple shadow-[0_-8px_30px_rgba(0,0,0,0.12)] z-20 flex flex-col lg:flex-row items-center justify-between px-5 md:px-10 py-4 gap-4">
+            <button onclick="hideFooter()" class="lg:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/30 rounded-full text-white transition-colors shrink-0">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="flex items-start lg:items-center gap-4 text-left text-white w-full lg:w-auto pr-8 lg:pr-0">
+                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-bullhorn text-brand-orange md:text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium leading-snug">
+                        <span class="text-brand-orange font-bold mr-1 block md:inline">Help us improve our town.</span> 
+                        Spotted an issue in your area? Contact us so we can fix it.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex w-full lg:w-auto items-center justify-center gap-3 shrink-0 pt-2 lg:pt-0">
+                <button class="flex-1 lg:flex-none px-5 py-2.5 bg-white text-brand-purple font-bold text-sm rounded-lg hover:bg-gray-100 transition-colors">
+                    View Reports
+                </button>
+                <button class="flex-1 lg:flex-none px-5 py-2.5 bg-brand-orange text-white font-bold text-sm rounded-lg hover:bg-[#E66935] transition-colors">
+                    Report an issue
+                </button>
+                <button onclick="hideFooter()" class="hidden lg:flex ml-2 w-9 h-9 items-center justify-center bg-white/10 hover:bg-white/30 rounded-full text-white transition-colors shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <button id="restore-footer-btn" onclick="restoreFooter()" class="fab-hidden fixed bottom-6 right-6 lg:bottom-8 lg:right-10 w-14 h-14 bg-brand-orange text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#E66935] transition-all z-30 focus:outline-none" title="Restore Issue Report Footer">
+            <i class="fa-solid fa-bullhorn text-xl"></i>
+            <span class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+        </button>
+    </main>
+
+    <div id="notification-wrapper" class="fixed inset-0 z-[60]">
+        <div id="notification-backdrop" class="absolute inset-0 bg-brand-purple/40 backdrop-blur-sm" onclick="toggleNotifications()"></div>
+        <div id="notification-box" class="absolute right-4 top-20 lg:right-10 w-80 md:w-96 bg-white rounded-[1.5rem] shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-gray-50 flex justify-between items-center bg-white">
+                <h3 class="font-bold text-brand-purple text-lg">Notifications</h3>
+                <button onclick="toggleNotifications()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:text-brand-orange hover:bg-orange-50 transition-colors focus:outline-none">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-2 max-h-[60vh] overflow-y-auto flex flex-col gap-1 bg-gray-50/30">
+                <div class="flex gap-4 p-3 rounded-xl bg-orange-50/80 border border-brand-orange/20 cursor-pointer hover:bg-orange-100 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-white text-brand-orange flex items-center justify-center shrink-0 shadow-sm">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-800 text-sm">Issue Update</p>
+                        <p class="text-gray-600 text-[13px] mt-0.5 leading-snug">Your report "Broken Streetlight" on Mabini St. has been marked as <strong>Resolved</strong>.</p>
+                        <span class="text-[11px] text-brand-orange font-semibold mt-1 block">Just now</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            
+            if(overlay.classList.contains('pointer-events-none')) {
+                overlay.classList.remove('pointer-events-none', 'opacity-0');
+            } else {
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('pointer-events-none'), 300);
+            }
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notification-wrapper').classList.toggle('active');
+        }
+
+        function hideFooter() {
+            const footer = document.getElementById('sticky-footer');
+            const scrollArea = document.getElementById('main-scroll-area');
+            const fab = document.getElementById('restore-footer-btn');
+
+            footer.classList.add('footer-hidden');
+            scrollArea.classList.remove('pb-40');
+            scrollArea.classList.add('pb-8');
+            fab.classList.remove('fab-hidden');
+        }
+
+        function restoreFooter() {
+            const footer = document.getElementById('sticky-footer');
+            const scrollArea = document.getElementById('main-scroll-area');
+            const fab = document.getElementById('restore-footer-btn');
+
+            footer.classList.remove('footer-hidden');
+            scrollArea.classList.remove('pb-8');
+            scrollArea.classList.add('pb-40');
+            fab.classList.add('fab-hidden');
+        }
+    </script>
+
+    <script type="module">
+        const checkFirebase = setInterval(async () => {
+            if (window.fbAuth && window.fbFunctions) {
+                clearInterval(checkFirebase);
+                
+                const { onAuthStateChanged, signOut, doc, getDoc } = window.fbFunctions;
+
+                // 1. Check if user is logged in
+                onAuthStateChanged(window.fbAuth, async (user) => {
+                    if (user) {
+                        try {
+                            // 2. Fetch the user's data from Firestore using their unique ID
+                            const docRef = doc(window.fbDb, "profile", user.uid);
+                            const docSnap = await getDoc(docRef);
+
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
+                                
+                                // Format the strings
+                                const firstName = data.first_name || "Citizen";
+                                const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
+
+                                let locationText = "Location Not Set";
+                                if(data.barangay && data.city && data.province) {
+                                    locationText = `${data.barangay}, ${data.city}, ${data.province}`;
+                                } else if (data.city) {
+                                    locationText = data.city;
+                                }
+
+                                // 3. Update the Text UI
+                                document.getElementById('welcome-name').textContent = firstName;
+                                document.getElementById('desktop-sidebar-name').textContent = fullName;
+                                document.getElementById('mobile-sidebar-name').textContent = fullName;
+                                document.getElementById('desktop-sidebar-location').textContent = locationText;
+                                document.getElementById('mobile-sidebar-location').textContent = locationText;
+                                document.getElementById('desktop-sidebar-location').title = locationText;
+
+                                // 4. Update the Image UI (Checks for new profile pic first, then fallback to ID pic)
+                                const currentImageUrl = data.profile_image_url || data.id_image_url;
+                                if (currentImageUrl) {
+                                    document.getElementById('desktop-sidebar-pic').src = currentImageUrl;
+                                    document.getElementById('mobile-sidebar-pic').src = currentImageUrl;
+                                }
+                            } else {
+                                console.log("User profile data not found in Firestore.");
+                            }
+                        } catch (error) {
+                            console.error("Error retrieving user data:", error);
+                        }
+                    } else {
+                        // User is NOT logged in -> kick them back to the login page
+                        window.location.href = 'index.html';
+                    }
+                });
+
+                // 5. Attach the logout function so the HTML buttons can use it
+                window.handleLogout = async () => {
+                    try {
+                        await signOut(window.fbAuth);
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        alert("Error logging out.");
+                        console.error("Logout error:", error);
+                    }
+                };
+            }
+        }, 50); 
+    </script>
+</body>
+</html>
