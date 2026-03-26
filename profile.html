@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | EC Connect</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="module" src="profile.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { purple: '#381A8B', orange: '#FF7A45' } },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #F8F9FA; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .modern-input { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 0.75rem 1rem; color: #111827; transition: all 0.2s; outline: none; width: 100%; }
+        .modern-input:focus { border-color: #381A8B; background: #ffffff; box-shadow: 0 0 0 3px rgba(56, 26, 139, 0.1); }
+        .modern-input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; }
+
+        select.modern-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+
+        /* SIDEBAR CSS */
+        #desktop-sidebar { width: 5.5rem; transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease; overflow: hidden; white-space: nowrap; }
+        #desktop-sidebar:hover { width: 17rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
+        #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; pointer-events: none; }
+        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); transition-delay: 0.1s; pointer-events: auto; }
+        #mobile-sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        #mobile-overlay { transition: opacity 0.3s ease; }
+
+        /* Modal & Hover Effects */
+        .profile-pic-container:hover .pic-overlay { opacity: 1; }
+        .modal-overlay { opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { opacity: 0; transform: scale(0.95); transition: all 0.2s ease-in-out; }
+        .modal-overlay.active .modal-content { opacity: 1; transform: scale(1); }
+    </style>
+</head>
+<body class="h-screen flex text-gray-800 selection:bg-brand-orange selection:text-white">
+
+    <div id="mobile-overlay" class="fixed inset-0 bg-brand-purple/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
+    <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl transition-transform">
+        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-orange w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+        <div class="flex items-center px-6 mb-8 shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-brand-purple/10 flex items-center justify-center shrink-0"><i class="fa-solid fa-leaf text-brand-purple text-xl"></i></div>
+            <span class="font-bold text-brand-purple ml-4 text-lg tracking-tight">EC <span class="text-brand-orange">Connect</span></span>
+        </div>
+        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto">
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium text-[15px]">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium text-[15px]">CivicFeed</span>
+            </a>
+        </nav>
+        <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            <div class="flex items-center p-2 rounded-xl bg-orange-50 border border-brand-orange/20 overflow-hidden cursor-default w-full">
+                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=381A8B&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] rounded-br-none py-6 border-r border-gray-100">
+        <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
+            <div class="w-10 h-10 rounded-xl bg-brand-purple/10 flex items-center justify-center shrink-0 hover:bg-brand-orange/20 transition-colors cursor-pointer"><i class="fa-solid fa-leaf text-brand-purple text-xl"></i></div>
+            <span class="nav-text font-bold text-brand-purple ml-4 text-lg tracking-tight cursor-default">EC<span class="text-brand-orange">Connect</span></span>
+        </div>
+        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto">
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-semibold text-[15px]">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium text-[15px]">CivicFeed</span>
+            </a>
+        </nav>
+        <div class="mt-auto px-3 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            <div class="flex items-center p-2 rounded-xl bg-orange-50 border border-brand-orange/20 overflow-hidden w-full cursor-default">
+                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=381A8B&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 lg:ml-[5.5rem] flex flex-col relative min-w-0 w-full h-screen">
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#F8F9FA]/80 backdrop-blur-md z-30 sticky top-0">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-brand-purple hover:bg-white hover:shadow-sm rounded-full transition-all focus:outline-none -ml-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="text-sm font-medium text-gray-400">Portal / <span class="text-brand-purple font-semibold">My Account</span></div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 md:px-8 pb-20 pt-6">
+            <div class="max-w-5xl mx-auto">
+                
+                <div class="mb-8">
+                    <h1 class="text-3xl font-extrabold text-gray-900 mb-2">My Account</h1>
+                    <p class="text-gray-500">Manage your personal information, address, and view system alerts.</p>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+                    <div class="h-28 bg-gradient-to-r from-brand-purple to-[#2A136A] relative"></div> 
+                    <div class="px-6 md:px-8 pb-8 relative flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-12">
+                        
+                        <div class="profile-pic-container relative w-32 h-32 rounded-full border-4 border-white bg-gray-100 shadow-md overflow-hidden cursor-pointer group shrink-0" onclick="openModal('image-upload-modal')">
+                            <img id="profile-preview" src="https://ui-avatars.com/api/?name=User&background=381A8B&color=fff" alt="Profile" class="w-full h-full object-cover">
+                            <div class="pic-overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 transition-opacity">
+                                <i class="fa-solid fa-camera mb-1 text-xl"></i>
+                                <span class="text-[10px] font-semibold tracking-wider">CHANGE</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 w-full text-center sm:text-left mb-2 sm:mb-0">
+                            <h2 id="display-name" class="text-3xl font-extrabold text-gray-900 truncate tracking-tight">Loading...</h2>
+                            <p id="display-email" class="text-brand-orange font-semibold truncate mt-1">loading@email.com</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col">
+                        <div class="flex items-center justify-between border-b border-gray-50 pb-4 mb-6">
+                            <h3 class="text-lg font-bold text-brand-purple flex items-center gap-2">
+                                <i class="fa-regular fa-address-card text-brand-orange"></i> Personal Info
+                            </h3>
+                            <button onclick="openModal('personal-info-modal')" class="text-sm font-bold text-gray-500 hover:text-brand-orange transition-colors flex items-center gap-1 bg-gray-50 hover:bg-orange-50 px-3 py-1.5 rounded-lg">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                        </div>
+                        
+                        <div class="flex-1 grid grid-cols-1 gap-5">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Full Name</p>
+                                <p id="static-fullname" class="font-medium text-gray-900">Loading...</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Date of Birth</p>
+                                    <p id="static-bday" class="font-medium text-gray-900">Loading...</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Age</p>
+                                    <p id="static-age" class="font-medium text-gray-900">Loading...</p>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Mobile Number</p>
+                                <p id="static-mobile" class="font-medium text-gray-900">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col">
+                        <div class="flex items-center justify-between border-b border-gray-50 pb-4 mb-6">
+                            <h3 class="text-lg font-bold text-brand-purple flex items-center gap-2">
+                                <i class="fa-solid fa-map-location-dot text-brand-orange"></i> Current Address
+                            </h3>
+                            <button onclick="openAddressModal()" class="text-sm font-bold text-gray-500 hover:text-brand-orange transition-colors flex items-center gap-1 bg-gray-50 hover:bg-orange-50 px-3 py-1.5 rounded-lg">
+                                <i class="fa-solid fa-pen"></i> Change
+                            </button>
+                        </div>
+                        
+                        <div class="flex-1 grid grid-cols-1 gap-5">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Province</p>
+                                <p id="static-province" class="font-medium text-gray-900">Loading...</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">City / Municipality</p>
+                                <p id="static-city" class="font-medium text-gray-900">Loading...</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Barangay</p>
+                                <p id="static-brgy" class="font-medium text-gray-900">Loading...</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Postal Code</p>
+                                <p id="static-postal" class="font-medium text-gray-900">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col h-[300px]">
+                        <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
+                            <h3 class="font-bold text-brand-purple text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-bullhorn text-brand-orange"></i> Updates
+                            </h3>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center justify-center text-center text-gray-400">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                <i class="fa-solid fa-tower-broadcast text-2xl text-gray-300"></i>
+                            </div>
+                            <p class="text-sm font-medium">No recent updates.</p>
+                            <p class="text-xs mt-1 text-gray-400">System announcements will appear here.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col h-[300px]">
+                        <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
+                            <h3 class="font-bold text-brand-purple text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-bell text-brand-orange"></i> Notifications
+                            </h3>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center justify-center text-center text-gray-400">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                <i class="fa-regular fa-bell-slash text-2xl text-gray-300"></i>
+                            </div>
+                            <p class="text-sm font-medium">You're all caught up!</p>
+                            <p class="text-xs mt-1 text-gray-400">We'll notify you when something arrives.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <div id="image-upload-modal" class="modal-overlay fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+        <div class="absolute inset-0" onclick="closeModals()"></div>
+        <div class="modal-content relative bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl">
+            <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-gray-800 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-brand-purple/10 text-brand-purple rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-image-portrait"></i></div>
+                <h3 class="text-xl font-bold text-gray-900">Update Photo</h3>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
+                <ul class="text-sm text-gray-600 space-y-2.5 font-medium">
+                    <li class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-green-500"></i> JPEG or PNG format only</li>
+                    <li class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-green-500"></i> Maximum size of 5 MB</li>
+                </ul>
+            </div>
+            <input type="file" id="camera-upload" accept="image/png, image/jpeg" capture="user" class="hidden" onchange="window.handleImageChange(event)">
+            <input type="file" id="gallery-upload" accept="image/png, image/jpeg" class="hidden" onchange="window.handleImageChange(event)">
+            
+            <div class="flex flex-col gap-3">
+                <button onclick="document.getElementById('camera-upload').click()" class="w-full py-3.5 bg-brand-purple text-white font-bold rounded-xl hover:bg-[#2A136A] transition-colors flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-camera"></i> Open Camera
+                </button>
+                <button onclick="document.getElementById('gallery-upload').click()" class="w-full py-3.5 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-regular fa-image"></i> Choose from Gallery
+                </button>
+            </div>
+            <p id="image-error-msg" class="text-red-500 text-sm font-semibold mt-4 hidden text-center bg-red-50 p-2 rounded-lg"></p>
+            <p id="image-success-msg" class="text-green-600 text-sm font-semibold mt-4 hidden text-center bg-green-50 p-2 rounded-lg"><i class="fa-solid fa-circle-notch fa-spin"></i> Uploading...</p>
+        </div>
+    </div>
+
+    <div id="personal-info-modal" class="modal-overlay fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+        <div class="absolute inset-0" onclick="closeModals()"></div>
+        <div class="modal-content relative bg-white rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 shrink-0">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2"><i class="fa-regular fa-address-card text-brand-purple"></i> Edit Information</h3>
+                <button type="button" onclick="closeModals()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-gray-800 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 pr-2">
+                <form id="personal-info-form" onsubmit="window.savePersonalInfo(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">First Name</label>
+                        <input type="text" id="edit-fname" required class="modern-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Last Name</label>
+                        <input type="text" id="edit-lname" required class="modern-input">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Middle Name <span class="text-gray-400 font-normal">(Optional)</span></label>
+                        <input type="text" id="edit-mname" class="modern-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Birthday</label>
+                        <input type="date" id="edit-bday" required onchange="calculateAge()" class="modern-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Age</label>
+                        <input type="number" id="edit-age" required readonly class="modern-input bg-gray-50 text-gray-500 cursor-not-allowed border-dashed">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Mobile Number</label>
+                        <input type="tel" id="edit-mobile" required class="modern-input">
+                    </div>
+
+                    <p id="personal-msg" class="hidden md:col-span-2 p-3 rounded-xl text-sm font-semibold text-center"></p>
+
+                    <div class="md:col-span-2 mt-4 pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3">
+                        <button type="button" onclick="closeModals()" class="w-full sm:w-auto px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+                        <button type="submit" id="btn-save-personal" class="w-full sm:w-auto px-8 py-3 bg-brand-orange text-white font-bold rounded-xl hover:bg-[#E06433] hover:-translate-y-0.5 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="address-modal" class="modal-overlay fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+        <div class="absolute inset-0" onclick="closeModals()"></div>
+        <div class="modal-content relative bg-white rounded-3xl p-6 md:p-8 w-full max-w-xl shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 shrink-0">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-brand-purple"></i> Change Address</h3>
+                <button type="button" onclick="closeModals()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-gray-800 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="bg-orange-50 text-brand-orange text-sm p-3 rounded-xl mb-5 font-medium">
+                <i class="fa-solid fa-circle-info mr-1"></i> Please select your complete address starting from the province.
+            </div>
+
+            <div class="overflow-y-auto flex-1 pr-2">
+                <form id="address-form" onsubmit="window.saveAddressInfo(event)" class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Province</label>
+                        <select id="edit-province" required class="modern-input cursor-pointer bg-white">
+                            <option value="">Select Province</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">City / Municipality</label>
+                        <select id="edit-city" required disabled class="modern-input cursor-pointer">
+                            <option value="">Select City/Municipality</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Barangay</label>
+                        <select id="edit-brgy" required disabled class="modern-input cursor-pointer">
+                            <option value="">Select Barangay</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">Postal Code</label>
+                        <input type="text" id="edit-postal" required class="modern-input">
+                    </div>
+
+                    <p id="address-msg" class="hidden p-3 rounded-xl text-sm font-semibold text-center mt-2"></p>
+
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3">
+                        <button type="button" onclick="closeModals()" class="w-full sm:w-auto px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+                        <button type="submit" id="btn-save-address" class="w-full sm:w-auto px-8 py-3 bg-brand-orange text-white font-bold rounded-xl hover:bg-[#E06433] hover:-translate-y-0.5 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-map-pin"></i> Update Address
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            if(overlay.classList.contains('pointer-events-none')) {
+                overlay.classList.remove('pointer-events-none', 'opacity-0');
+            } else {
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('pointer-events-none'), 300);
+            }
+        }
+
+        function openModal(id) {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            // Reset error messages when opening modals
+            if(document.getElementById('image-error-msg')) document.getElementById('image-error-msg').classList.add('hidden');
+            if(document.getElementById('personal-msg')) document.getElementById('personal-msg').classList.add('hidden');
+            if(document.getElementById('address-msg')) document.getElementById('address-msg').classList.add('hidden');
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+        }
+
+        function calculateAge() {
+            const bdayInput = document.getElementById('edit-bday').value;
+            if(!bdayInput) return;
+            const birthDate = new Date(bdayInput);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            if (today.getMonth() - birthDate.getMonth() < 0 || (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) age--;
+            document.getElementById('edit-age').value = age;
+        }
+
+        // ==========================================
+        // PSGC API Logic for Address Modal
+        // ==========================================
+        let provincesLoaded = false;
+        const provSelect = document.getElementById('edit-province');
+        const citySelect = document.getElementById('edit-city');
+        const brgySelect = document.getElementById('edit-brgy');
+
+        async function openAddressModal() {
+            openModal('address-modal');
+            if (!provincesLoaded) {
+                try {
+                    const response = await fetch('https://psgc.gitlab.io/api/provinces.json');
+                    const provinces = await response.json();
+                    provinces.sort((a, b) => a.name.localeCompare(b.name));
+                    provinces.forEach(prov => {
+                        const option = document.createElement('option');
+                        option.value = prov.code; 
+                        option.textContent = prov.name; 
+                        provSelect.appendChild(option);
+                    });
+                    provincesLoaded = true;
+                } catch (error) { console.error("Error loading provinces:", error); }
+            }
+        }
+
+        provSelect.addEventListener('change', async (e) => {
+            const provinceCode = e.target.value;
+            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+            brgySelect.innerHTML = '<option value="">Select Barangay</option>';
+            citySelect.disabled = true;
+            brgySelect.disabled = true;
+
+            if (!provinceCode) return;
+            try {
+                const response = await fetch(`https://psgc.gitlab.io/api/provinces/${provinceCode}/cities-municipalities.json`);
+                const cities = await response.json();
+                cities.sort((a, b) => a.name.localeCompare(b.name));
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.code;
+                    option.textContent = city.name;
+                    citySelect.appendChild(option);
+                });
+                citySelect.disabled = false; 
+            } catch (error) {}
+        });
+
+        citySelect.addEventListener('change', async (e) => {
+            const cityCode = e.target.value;
+            brgySelect.innerHTML = '<option value="">Select Barangay</option>';
+            brgySelect.disabled = true;
+
+            if (!cityCode) return;
+            try {
+                const response = await fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays.json`);
+                const barangays = await response.json();
+                barangays.sort((a, b) => a.name.localeCompare(b.name));
+                barangays.forEach(brgy => {
+                    const option = document.createElement('option');
+                    option.value = brgy.code;
+                    option.textContent = brgy.name;
+                    brgySelect.appendChild(option);
+                });
+                brgySelect.disabled = false;
+            } catch (error) {}
+        });
+    </script>
+
+    <script type="module">
+        let currentUserId = null;
+
+        const checkFirebase = setInterval(async () => {
+            if (window.fbAuth && window.fbFunctions) {
+                clearInterval(checkFirebase);
+                
+                const { onAuthStateChanged, signOut, doc, getDoc, updateDoc } = window.fbFunctions;
+
+                // 1. INITIALIZE PAGE DATA
+                onAuthStateChanged(window.fbAuth, async (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        document.getElementById('display-email').textContent = user.email;
+                        
+                        try {
+                            const docRef = doc(window.fbDb, "profile", currentUserId);
+                            const docSnap = await getDoc(docRef);
+
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
+                                const fullName = `${data.first_name || ''} ${data.middle_name ? data.middle_name + ' ' : ''}${data.last_name || ''}`.trim() || "Citizen";
+
+                                // Update Static Read-Only Views
+                                document.getElementById('static-fullname').textContent = fullName;
+                                document.getElementById('static-bday').textContent = data.birthday || 'Not Set';
+                                document.getElementById('static-age').textContent = data.age || 'Not Set';
+                                document.getElementById('static-mobile').textContent = data.mobile || 'Not Set';
+                                document.getElementById('static-province').textContent = data.province || 'Not Set';
+                                document.getElementById('static-city').textContent = data.city || 'Not Set';
+                                document.getElementById('static-brgy').textContent = data.barangay || 'Not Set';
+                                document.getElementById('static-postal').textContent = data.postal_code || 'Not Set';
+
+                                // Update Top Headers
+                                document.getElementById('display-name').textContent = fullName;
+                                document.getElementById('desktop-sidebar-name').textContent = fullName;
+                                document.getElementById('mobile-sidebar-name').textContent = fullName;
+
+                                let locationText = "Location Not Set";
+                                if(data.barangay && data.city && data.province) {
+                                    locationText = `${data.barangay}, ${data.city}, ${data.province}`;
+                                } else if(data.city) {
+                                    locationText = data.city;
+                                }
+                                document.getElementById('desktop-sidebar-location').textContent = locationText;
+                                document.getElementById('mobile-sidebar-location').textContent = locationText;
+                                document.getElementById('desktop-sidebar-location').title = locationText;
+
+                                const currentImageUrl = data.profile_image_url || data.id_image_url;
+                                if (currentImageUrl) {
+                                    document.getElementById('profile-preview').src = currentImageUrl;
+                                    document.getElementById('desktop-sidebar-pic').src = currentImageUrl;
+                                    document.getElementById('mobile-sidebar-pic').src = currentImageUrl;
+                                }
+
+                                // Pre-fill Modal Inputs
+                                document.getElementById('edit-fname').value = data.first_name || '';
+                                document.getElementById('edit-lname').value = data.last_name || '';
+                                document.getElementById('edit-mname').value = data.middle_name || '';
+                                document.getElementById('edit-bday').value = data.birthday || '';
+                                document.getElementById('edit-age').value = data.age || '';
+                                document.getElementById('edit-mobile').value = data.mobile || '';
+                                document.getElementById('edit-postal').value = data.postal_code || '';
+                            }
+                        } catch (error) {
+                            console.error("Error fetching data:", error);
+                        }
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                });
+
+                // 2. HANDLE DIRECT IMAGE UPLOAD
+                window.handleImageChange = async function(event) {
+                    const file = event.target.files[0];
+                    const errorMsg = document.getElementById('image-error-msg');
+                    const successMsg = document.getElementById('image-success-msg');
+                    
+                    errorMsg.classList.add('hidden');
+                    successMsg.classList.add('hidden');
+
+                    if (!file) return;
+
+                    // Validate File
+                    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                    if (!validTypes.includes(file.type)) {
+                        errorMsg.textContent = "Invalid format. Please select a PNG or JPEG.";
+                        errorMsg.classList.remove('hidden');
+                        event.target.value = ""; return;
+                    }
+                    if (file.size > 5242880) {
+                        errorMsg.textContent = "Image is too large. Maximum size is 5MB.";
+                        errorMsg.classList.remove('hidden');
+                        event.target.value = ""; return;
+                    }
+
+                    successMsg.classList.remove('hidden');
+
+                    try {
+                        // Upload immediately to Cloudinary
+                        const cloudName = 'dgoho5phg'; 
+                        const uploadPreset = 'ec_connect'; 
+                        const formData = new FormData();
+                        formData.append('file', file); 
+                        formData.append('upload_preset', uploadPreset);
+
+                        const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+                        const response = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
+                        const imgData = await response.json();
+
+                        if (!response.ok) throw new Error("Upload failed.");
+                        const finalImageUrl = imgData.secure_url;
+
+                        // Save new URL to Firestore
+                        const docRef = doc(window.fbDb, "profile", currentUserId);
+                        await updateDoc(docRef, { profile_image_url: finalImageUrl });
+
+                        // Update visuals
+                        document.getElementById('profile-preview').src = finalImageUrl;
+                        document.getElementById('desktop-sidebar-pic').src = finalImageUrl;
+                        document.getElementById('mobile-sidebar-pic').src = finalImageUrl;
+
+                        closeModals(); // Close modal on success
+                    } catch (error) {
+                        successMsg.classList.add('hidden');
+                        errorMsg.textContent = "Error saving image. Try again.";
+                        errorMsg.classList.remove('hidden');
+                    }
+                };
+
+                // 3. SAVE PERSONAL INFO
+                window.savePersonalInfo = async function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('btn-save-personal');
+                    const msgBox = document.getElementById('personal-msg');
+                    
+                    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+                    btn.disabled = true; msgBox.classList.add('hidden');
+
+                    try {
+                        const updatedData = {
+                            first_name: document.getElementById('edit-fname').value,
+                            last_name: document.getElementById('edit-lname').value,
+                            middle_name: document.getElementById('edit-mname').value,
+                            birthday: document.getElementById('edit-bday').value,
+                            age: parseInt(document.getElementById('edit-age').value),
+                            mobile: document.getElementById('edit-mobile').value,
+                        };
+
+                        const docRef = doc(window.fbDb, "profile", currentUserId);
+                        await updateDoc(docRef, updatedData);
+
+                        // Update Static UI
+                        const fullName = `${updatedData.first_name} ${updatedData.middle_name ? updatedData.middle_name + ' ' : ''}${updatedData.last_name}`.trim();
+                        document.getElementById('display-name').textContent = fullName;
+                        document.getElementById('desktop-sidebar-name').textContent = fullName;
+                        document.getElementById('mobile-sidebar-name').textContent = fullName;
+                        
+                        document.getElementById('static-fullname').textContent = fullName;
+                        document.getElementById('static-bday').textContent = updatedData.birthday;
+                        document.getElementById('static-age').textContent = updatedData.age;
+                        document.getElementById('static-mobile').textContent = updatedData.mobile;
+
+                        msgBox.textContent = "Information saved!";
+                        msgBox.className = "md:col-span-2 p-3 rounded-xl text-sm font-semibold text-center bg-green-50 text-green-600 block";
+                        
+                        setTimeout(() => { closeModals(); }, 1000);
+                        
+                    } catch (error) {
+                        msgBox.textContent = "Error saving details.";
+                        msgBox.className = "md:col-span-2 p-3 rounded-xl text-sm font-semibold text-center bg-red-50 text-red-600 block";
+                    } finally {
+                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+                        btn.disabled = false;
+                    }
+                };
+
+                // 4. SAVE ADDRESS INFO
+                window.saveAddressInfo = async function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('btn-save-address');
+                    const msgBox = document.getElementById('address-msg');
+                    const provSel = document.getElementById('edit-province');
+                    const citySel = document.getElementById('edit-city');
+                    const brgySel = document.getElementById('edit-brgy');
+                    
+                    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...';
+                    btn.disabled = true; msgBox.classList.add('hidden');
+
+                    try {
+                        const updatedData = {
+                            province: provSel.options[provSel.selectedIndex].text,
+                            city: citySel.options[citySel.selectedIndex].text,
+                            barangay: brgySel.options[brgySel.selectedIndex].text,
+                            postal_code: document.getElementById('edit-postal').value,
+                        };
+
+                        const docRef = doc(window.fbDb, "profile", currentUserId);
+                        await updateDoc(docRef, updatedData);
+
+                        // Update Static UI
+                        document.getElementById('static-province').textContent = updatedData.province;
+                        document.getElementById('static-city').textContent = updatedData.city;
+                        document.getElementById('static-brgy').textContent = updatedData.barangay;
+                        document.getElementById('static-postal').textContent = updatedData.postal_code;
+
+                        const newLocText = `${updatedData.barangay}, ${updatedData.city}, ${updatedData.province}`;
+                        document.getElementById('desktop-sidebar-location').textContent = newLocText;
+                        document.getElementById('mobile-sidebar-location').textContent = newLocText;
+
+                        msgBox.textContent = "Address updated!";
+                        msgBox.className = "p-3 rounded-xl text-sm font-semibold text-center bg-green-50 text-green-600 block mt-2";
+                        
+                        setTimeout(() => { closeModals(); }, 1000);
+                        
+                    } catch (error) {
+                        msgBox.textContent = "Error updating address.";
+                        msgBox.className = "p-3 rounded-xl text-sm font-semibold text-center bg-red-50 text-red-600 block mt-2";
+                    } finally {
+                        btn.innerHTML = '<i class="fa-solid fa-map-pin"></i> Update Address';
+                        btn.disabled = false;
+                    }
+                };
+
+                // 5. LOGOUT
+                window.handleLogout = async function() {
+                    try {
+                        await signOut(window.fbAuth);
+                        window.location.href = 'index.html';
+                    } catch (error) { alert("Error logging out."); }
+                };
+            }
+        }, 50);
+    </script>
+</body>
+</html>
