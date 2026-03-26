@@ -9,7 +9,7 @@ const firebaseConfig = {
     authDomain: "fir-ai-app-96845.firebaseapp.com",
     databaseURL: "https://fir-ai-app-96845-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "fir-ai-app-96845",
-    storageBucket: "fir-ai-app-96845.firebasestorage.app", // Naiwan ito sa config pero hindi na natin tatawagin yung service
+    storageBucket: "fir-ai-app-96845.firebasestorage.app", 
     messagingSenderId: "564401363339",
     appId: "1:564401363339:web:f971caecec0f6f1af5778e"
 };
@@ -19,8 +19,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Attach Firebase instances and functions to the window object 
-// so your index.html can access them globally.
 window.fbAuth = auth;
 window.fbDb = db;
 window.fbFunctions = {
