@@ -1,7 +1,8 @@
-// home.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+// IMPORT FIREBASE REALTIME DATABASE (Pinalitan ang Firestore)
+import { getDatabase, ref, get, child, onValue, query, orderByChild } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -17,17 +18,22 @@ const firebaseConfig = {
 // Initialize Firebase Apps
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = getDatabase(app); // REALTIME DATABASE NA ITO
 
-// Attach Firebase instances and functions to the window object 
-// so your home.html can access them.
+// Attach Firebase instances and functions to the window object
 window.fbAuth = auth;
 window.fbDb = db;
+
+// Export Realtime Database functions
 window.fbFunctions = {
     onAuthStateChanged,
     signOut,
-    doc,
-    getDoc
+    ref,
+    get,
+    child,
+    onValue,
+    query,
+    orderByChild
 };
 
-console.log("Firebase initialized for Home Dashboard!");
+console.log("Firebase Realtime Database initialized!");
