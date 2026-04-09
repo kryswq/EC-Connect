@@ -1,8 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-// IMPORT FIREBASE REALTIME DATABASE (Pinalitan ang Firestore)
-import { getDatabase, ref, get, child, onValue, query, orderByChild } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+// FIRESTORE (Para sa User Profile)
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+// REALTIME DATABASE (Para sa EC Feed)
+import { getDatabase, ref, onValue, query, orderByChild } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,22 +21,26 @@ const firebaseConfig = {
 // Initialize Firebase Apps
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase(app); // REALTIME DATABASE NA ITO
+const firestoreDb = getFirestore(app);
+const realtimeDb = getDatabase(app);
 
-// Attach Firebase instances and functions to the window object
+// Attach instances to window object
 window.fbAuth = auth;
-window.fbDb = db;
+window.fbDb = firestoreDb;       // fbDb para sa Firestore
+window.fbRtdb = realtimeDb;      // fbRtdb para sa Realtime DB
 
-// Export Realtime Database functions
+// I-export lahat ng functions na kailangan sa home.html
 window.fbFunctions = {
     onAuthStateChanged,
     signOut,
+    // Para sa Firestore (User Profile)
+    doc,
+    getDoc,
+    // Para sa Realtime DB (EC Feed)
     ref,
-    get,
-    child,
     onValue,
     query,
     orderByChild
 };
 
-console.log("Firebase Realtime Database initialized!");
+console.log("Firebase Auth, Firestore, & Realtime DB initialized!");
