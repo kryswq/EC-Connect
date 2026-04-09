@@ -3,103 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EC Connect Portal</title>
+    <title>EC Connect</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-theme.js"></script>
+    
     <script type="module" src="service.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 
-                        brand: { 
-                            primary: '#15518D',   /* Deep Trust Blue */
-                            secondary: '#34A1C8', /* Vibrant Cyan */
-                            orange: {
-                                DEFAULT: '#FF7A45', /* Vibrant Orange for Click */
-                            },
-                            green: {
-                                DEFAULT: '#1A824A', /* Emerald Community Green */
-                                light: '#4FBE74',   /* Fresh Leaf Green */
-                            },
-                            teal: '#1E8B8B',      /* Teal Bridge */
-                            dark: '#0f172a',      /* Dark text/backgrounds */
-                            light: '#E0F2FE'      /* Medyo Sky Blue Background */
-                        } 
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'], },
-                    boxShadow: {
-                        'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
-                        'glow': '0 0 20px rgba(21, 81, 141, 0.2)' 
-                    }
-                }
-            }
-        }
-    </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         body { 
             font-family: 'Inter', sans-serif; 
             overflow-x: hidden; 
-            /* Medyo Sky Blue background */
-            background-color: #E0F2FE;
+            background-color: #E0F2FE; 
             color: #0f172a;
         }
 
-        /* Improved Modal Animations & Glassmorphism overlay */
         .modal-overlay { 
-            opacity: 0; 
-            visibility: hidden; 
+            opacity: 0; visibility: hidden; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             background-color: rgba(15, 23, 42, 0.6); 
             backdrop-filter: blur(4px);
         }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-content { 
-            opacity: 0; 
-            transform: scale(0.95) translateY(10px); 
+            opacity: 0; transform: scale(0.95) translateY(10px); 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             background: #ffffff; 
         }
-        .modal-overlay.active .modal-content { 
-            opacity: 1; 
-            transform: scale(1) translateY(0); 
-        }
+        .modal-overlay.active .modal-content { opacity: 1; transform: scale(1) translateY(0); }
 
-        /* Clean, airy inputs */
         .modern-input { 
-            background: #f8fafc; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 0.75rem; 
-            padding: 0.875rem 1.25rem; 
-            color: #334155; 
-            transition: all 0.2s; 
-            outline: none; 
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.75rem; 
+            padding: 0.875rem 1.25rem; color: #334155; transition: all 0.2s ease-in-out; 
+            outline: none; font-weight: 500;
         }
-        .modern-input:focus { 
-            border-color: #15518D; 
-            background: #ffffff; 
-            box-shadow: 0 0 0 4px rgba(21, 81, 141, 0.1); 
-        }
-        .modern-input:disabled { 
-            background: #f1f5f9; 
-            color: #94a3b8; 
-            cursor: not-allowed; 
-            border-color: #e2e8f0; 
-        }
+        .modern-input:hover:not(:disabled) { border-color: #94a3b8; background: #ffffff; }
+        .modern-input:focus { border-color: #15518D; background: #ffffff; box-shadow: 0 0 0 4px rgba(21, 81, 141, 0.15); }
+        .modern-input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; opacity: 0.7; }
 
         select.modern-input {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 1rem center;
-            background-repeat: no-repeat;
-            background-size: 1.2em 1.2em;
+            appearance: none; cursor: pointer;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2315518D' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 8l5 5 5-5'/%3e%3c/svg%3e");
+            background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.5rem;
         }
+        select.modern-input:focus {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%231A824A' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12l-5-5-5 5'/%3e%3c/svg%3e");
+            border-color: #1A824A; box-shadow: 0 0 0 4px rgba(26, 130, 74, 0.15); 
+        }
+        select.modern-input:disabled {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23cbd5e1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 8l5 5 5-5'/%3e%3c/svg%3e");
+            cursor: not-allowed;
+        }
+
+        input[type="date"] { cursor: pointer; }
+        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; padding: 4px; border-radius: 6px; color: #15518D; transition: all 0.2s; opacity: 0.6; }
+        input[type="date"]:hover::-webkit-calendar-picker-indicator { opacity: 1; background-color: #e0f2fe; }
+        input[type="date"]:focus::-webkit-calendar-picker-indicator { opacity: 1; background-color: #dcfce7; }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -121,7 +83,7 @@
             Your centralized portal for community services, reports, and seamless civic engagement. Enter your portal securely.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto">
-            <button onclick="openModal('selection-modal')" class="px-8 py-3.5 bg-brand-primary text-white font-semibold text-lg rounded-xl hover:bg-[#0f3b68] active:bg-brand-orange transition-all shadow-glow hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-3">
+            <button onclick="openModal('selection-modal')" class="px-8 py-3.5 bg-brand-primary text-white font-semibold text-lg rounded-xl hover:bg-[#0f3b68] active:bg-brand-accent transition-all shadow-glow hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-3">
                 Get Started <i class="fa-solid fa-arrow-right text-sm"></i>
             </button>
             <button onclick="guestLogin()" class="px-8 py-3.5 bg-white border border-slate-200 text-slate-700 font-semibold text-lg rounded-xl hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 transition-all shadow-sm">
@@ -137,10 +99,10 @@
                 <h2 class="text-2xl font-bold text-slate-800">Welcome</h2>
                 <button onclick="closeModals()" class="text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 w-8 h-8 rounded-full transition-colors flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <button onclick="switchModal('login-modal')" class="w-full py-3.5 bg-white border-2 border-brand-primary text-brand-primary font-bold rounded-xl hover:bg-slate-50 active:bg-brand-orange active:border-brand-orange active:text-white transition-all shadow-sm">
+            <button onclick="switchModal('login-modal')" class="w-full py-3.5 bg-white border-2 border-brand-primary text-brand-primary font-bold rounded-xl hover:bg-slate-50 active:bg-brand-accent active:border-brand-accent active:text-white transition-all shadow-sm">
                 Log In
             </button>
-            <button onclick="switchModal('register-modal')" class="w-full py-3.5 bg-brand-secondary text-white font-bold rounded-xl hover:bg-[#288eb3] active:bg-brand-orange transition-all shadow-sm">
+            <button onclick="switchModal('register-modal')" class="w-full py-3.5 bg-brand-accent text-white font-bold rounded-xl hover:bg-[#156e3e] active:bg-[#115a32] transition-all shadow-sm">
                 Create Account
             </button>
         </div>
@@ -167,7 +129,7 @@
                     <input type="password" id="login-password" placeholder="••••••••" required class="modern-input w-full">
                 </div>
                 <p id="login-error" class="text-red-500 text-sm hidden text-center font-medium bg-red-50 border border-red-100 p-3 rounded-lg"></p>
-                <button type="submit" id="login-btn" class="w-full py-4 mt-2 bg-brand-primary text-white font-bold rounded-xl hover:bg-[#0f3b68] active:bg-brand-orange transition-colors shadow-glow">
+                <button type="submit" id="login-btn" class="w-full py-4 mt-2 bg-brand-primary text-white font-bold rounded-xl hover:bg-[#0f3b68] active:bg-brand-accent transition-colors shadow-glow">
                     Sign In
                 </button>
             </form>
@@ -279,7 +241,7 @@
                     <p id="reg-error" class="text-red-500 text-sm hidden md:col-span-2 text-center font-medium bg-red-50 border border-red-100 p-3 rounded-lg mt-2"></p>
 
                     <div class="md:col-span-2 mt-6">
-                        <button type="submit" id="reg-btn" class="w-full py-4 bg-brand-secondary text-white font-bold rounded-xl hover:bg-[#288eb3] active:bg-brand-orange transition-all shadow-md text-lg flex justify-center items-center gap-2">
+                        <button type="submit" id="reg-btn" class="w-full py-4 bg-brand-accent text-white font-bold rounded-xl hover:bg-[#156e3e] active:bg-[#115a32] transition-all shadow-md text-lg flex justify-center items-center gap-2">
                             Create Account <i class="fa-solid fa-arrow-right mt-0.5 text-sm"></i>
                         </button>
                     </div>
@@ -289,9 +251,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // UI & MODAL LOGIC
-        // ==========================================
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModals() { document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active')); }
         function switchModal(id) { closeModals(); setTimeout(() => openModal(id), 250); }
@@ -330,9 +289,6 @@
             }
         }
 
-        // ==========================================
-        // PSGC API CASCADING DROPDOWNS
-        // ==========================================
         const provinceSelect = document.getElementById('reg-province');
         const citySelect = document.getElementById('reg-city');
         const barangaySelect = document.getElementById('reg-brgy');
@@ -397,9 +353,6 @@
 
         loadProvinces();
 
-        // ==========================================
-        // AUTH & DATABASE LOGIC (FIREBASE + CLOUDINARY)
-        // ==========================================
         async function handleLogin(e) {
             e.preventDefault();
             const btn = document.getElementById('login-btn');
