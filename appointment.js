@@ -2,10 +2,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-// FIRESTORE (Gagamitin natin pareho para sa Profile at sa Appointments)
-import { getFirestore, doc, getDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+// FIRESTORE - Idinagdag natin ang getDocs dito
+import { getFirestore, doc, getDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyBBsWGhsw7hHMOGu4QpLEOjNjKCjq_l2a0",
     authDomain: "fir-ai-app-96845.firebaseapp.com",
@@ -16,16 +15,13 @@ const firebaseConfig = {
     appId: "1:564401363339:web:f971caecec0f6f1af5778e"
 };
 
-// Initialize Firebase Apps
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const firestoreDb = getFirestore(app);
 
-// Attach instances to window object
 window.fbAuth = auth;
 window.fbDb = firestoreDb;       
 
-// Export functions to HTML
 window.fbFunctions = {
     onAuthStateChanged,
     signOut,
@@ -37,7 +33,8 @@ window.fbFunctions = {
     where,
     orderBy,
     onSnapshot,
-    serverTimestamp
+    serverTimestamp,
+    getDocs // I-export para magamit sa HTML natin pang-check ng upuan
 };
 
-console.log("Firebase initialized for Appointments Page!");
+console.log("Firebase initialized for Appointments Page with Seat Checker!");
