@@ -1,0 +1,43 @@
+// appointments.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+// FIRESTORE (Gagamitin natin pareho para sa Profile at sa Appointments)
+import { getFirestore, doc, getDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBBsWGhsw7hHMOGu4QpLEOjNjKCjq_l2a0",
+    authDomain: "fir-ai-app-96845.firebaseapp.com",
+    databaseURL: "https://fir-ai-app-96845-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "fir-ai-app-96845",
+    storageBucket: "fir-ai-app-96845.firebasestorage.app",
+    messagingSenderId: "564401363339",
+    appId: "1:564401363339:web:f971caecec0f6f1af5778e"
+};
+
+// Initialize Firebase Apps
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const firestoreDb = getFirestore(app);
+
+// Attach instances to window object
+window.fbAuth = auth;
+window.fbDb = firestoreDb;       
+
+// Export functions to HTML
+window.fbFunctions = {
+    onAuthStateChanged,
+    signOut,
+    doc,
+    getDoc,
+    collection,
+    addDoc,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    serverTimestamp
+};
+
+console.log("Firebase initialized for Appointments Page!");
