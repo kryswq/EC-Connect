@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-// FIRESTORE (Para lang sa Profile Sidebar)
+// FIRESTORE (Para sa Profile Sidebar)
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 // REALTIME DATABASE (Para sa Appointments & Seats)
@@ -23,14 +23,15 @@ const auth = getAuth(app);
 const firestoreDb = getFirestore(app);
 const realtimeDb = getDatabase(app);
 
+// I-attach sa window object para mabasa ng HTML
 window.fbAuth = auth;
-window.fbDb = firestoreDb;       // Firestore
-window.fbRtdb = realtimeDb;      // Realtime Database
+window.fbDb = firestoreDb;       
+window.fbRtdb = realtimeDb;      
 
 window.fbFunctions = {
     onAuthStateChanged, signOut, 
-    doc, getDoc, // Firestore Profile
-    ref, push, set, get, onValue, query, orderByChild, equalTo, serverTimestamp // Realtime DB Appointments
+    doc, getDoc, 
+    ref, push, set, get, onValue, query, orderByChild, equalTo, serverTimestamp
 };
 
-console.log("Firebase initialized for Appointments Page (Realtime Database mode)!");
+console.log("Firebase initialized via appointment.js!");
