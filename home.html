@@ -342,123 +342,124 @@
         }
     </script>
 
-    <script type="module">
+   <script type="module">
         const checkFirebase = setInterval(async () => {
-            if (window.fbAuth && window.fbFunctions) {
+            // Tinitiyak na loaded na ang parehong fbDb (Firestore) at fbRtdb (Realtime DB)
+            if (window.fbAuth && window.fbFunctions && window.fbDb && window.fbRtdb) {
                 clearInterval(checkFirebase);
                 
-                // Fetch the exported RTDB functions from fbFunctions
-                const { onAuthStateChanged, signOut, ref, get, child, onValue, query, orderByChild } = window.fbFunctions;
+                const { onAuthStateChanged, signOut, doc, getDoc, ref, onValue, query, orderByChild } = window.fbFunctions;
 
-                // 1. Authenticate User & Load Profile
                 onAuthStateChanged(window.fbAuth, async (user) => {
                     if (user) {
+                        
+                        // 1. KUNIN ANG PROFILE (Gamit ang window.fbDb / FIRESTORE)
                         try {
-                            // REALTIME DATABASE: Fetch Profile Data
-                            const dbRef = ref(window.fbDb);
-                            const snapshot = await get(child(dbRef, `profile/${user.uid}`));
+                            const docRef = doc(window.fbDb, "profile", user.uid);
+                            const docSnap = await getDoc(docRef);
 
-                            if (snapshot.exists()) {
-                                const data = snapshot.val();
-                                
-                                const firstName = data.first_name || "Citizen";
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
                                 const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
+                                
+                                // Welcome text (Kung meron)
+                                const welcomeName = document.getElementById('welcome-name');
+                                if (welcomeName) welcomeName.textContent = data.first_name || "Citizen";
 
-                                let locationText = "Location Not Set";
-                                if(data.barangay && data.city && data.province) {
-                                    locationText = `${data.barangay}, ${data.city}, ${data.province}`;
-                                } else if (data.city) {
-                                    locationText = data.city;
-                                }
+                                // Setup Sidebar Names
+                                const dName = document.getElementById('desktop-sidebar-name');
+                                const mName = document.getElementById('mobile-sidebar-name');
+                                if(dName) dName.textContent = fullName;
+                                if(mName) mName.textContent = fullName;
 
-                                document.getElementById('welcome-name').textContent = firstName;
-                                document.getElementById('desktop-sidebar-name').textContent = fullName;
-                                document.getElementById('mobile-sidebar-name').textContent = fullName;
-                                document.getElementById('desktop-sidebar-location').textContent = locationText;
-                                document.getElementById('mobile-sidebar-location').textContent = locationText;
+                                // Setup Sidebar Location
+                                let locationText = data.city || "Location Not Set";
+                                const dLoc = document.getElementById('desktop-sidebar-location');
+                                const mLoc = document.getElementById('mobile-sidebar-location');
+                                if(dLoc) dLoc.textContent = locationText;
+                                if(mLoc) mLoc.textContent = locationText;
 
-                                const currentImageUrl = data.profile_image_url || data.id_image_url;
-                                if (currentImageUrl) {
-                                    document.getElementById('desktop-sidebar-pic').src = currentImageUrl;
-                                    document.getElementById('mobile-sidebar-pic').src = currentImageUrl;
-                                }
-
-                                // ================================================== //
-                                // 2. REALTIME EC FEED LOGIC (RTDB Version)
-                                // ================================================== //
-                                const feedStream = document.getElementById('ec-feed-stream');
-
-                                if (onValue && query && orderByChild) {
-                                    // Query the "admin_announcements" node, ordered by "createdAt"
-                                    const feedQuery = query(ref(window.fbDb, "admin_announcements"), orderByChild("createdAt"));
-                                    
-                                    onValue(feedQuery, (snapshot) => {
-                                        feedStream.innerHTML = ''; 
-                                        
-                                        if(!snapshot.exists()) {
-                                            feedStream.innerHTML = '<div class="text-center text-gray-500 font-medium py-6 bg-white rounded-2xl border border-gray-100 shadow-sm">No announcements from the Admin yet.</div>';
-                                            return;
-                                        }
-                                        
-                                        // RTDB orderByChild is ascending. To get newest first, we push to array and reverse.
-                                        const posts = [];
-                                        snapshot.forEach((childSnapshot) => {
-                                            posts.push(childSnapshot.val());
-                                        });
-                                        posts.reverse();
-
-                                        posts.forEach((post) => {
-                                            let timeString = 'Just now';
-                                            // In RTDB, serverTimestamp is saved as milliseconds (number)
-                                            if (post.createdAt) {
-                                                const date = new Date(post.createdAt);
-                                                timeString = date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                                            }
-                                            
-                                            const postHTML = `
-                                                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 animate-enter opacity-0">
-                                                    <div class="flex items-center gap-3 mb-3">
-                                                        <div class="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-                                                            <i class="fa-solid fa-bullhorn"></i>
-                                                        </div>
-                                                        <div>
-                                                            <h4 class="font-bold text-brand-primary text-sm">${post.adminName || 'Barangay Admin'}</h4>
-                                                            <span class="text-xs text-gray-400 font-medium">${timeString}</span>
-                                                        </div>
-                                                    </div>
-                                                    ${post.title ? `<h5 class="font-bold text-gray-800 mb-1">${post.title}</h5>` : ''}
-                                                    <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line">${post.content}</p>
-                                                </div>
-                                            `;
-                                            feedStream.insertAdjacentHTML('beforeend', postHTML);
-                                        });
-                                    });
-                                } else {
-                                    feedStream.innerHTML = '<div class="text-center text-red-500 py-4">RTDB connection functions not found. Ensure onValue, query, and orderByChild are exported from home.js</div>';
-                                }
-
-                            } else {
-                                console.log("User profile data not found in Realtime DB.");
+                                // Setup Profile Picture
+                                const imgUrl = data.profile_image_url || data.id_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=15518D&color=fff`;
+                                const dPic = document.getElementById('desktop-sidebar-pic');
+                                const mPic = document.getElementById('mobile-sidebar-pic');
+                                if(dPic) dPic.src = imgUrl;
+                                if(mPic) mPic.src = imgUrl;
                             }
                         } catch (error) {
-                            console.error("Error retrieving user data:", error);
+                            console.error("Profile Fetch Error:", error);
                         }
+
+                        // 2. KUNIN ANG EC FEED (Gamit ang window.fbRtdb / REALTIME DB)
+                        const feedStream = document.getElementById('ec-feed-stream');
+                        
+                        if (feedStream) {
+                            try {
+                                // Siguraduhing window.fbRtdb ang gamit sa ref()
+                                const feedQuery = query(ref(window.fbRtdb, "admin_announcements"), orderByChild("createdAt"));
+                                
+                                onValue(feedQuery, (snapshot) => {
+                                    feedStream.innerHTML = ''; 
+                                    
+                                    if(!snapshot.exists()) {
+                                        feedStream.innerHTML = `
+                                            <div class="text-center py-6 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col items-center">
+                                                <i class="fa-solid fa-inbox text-gray-300 text-2xl mb-2"></i>
+                                                <p class="text-sm font-medium text-gray-500">No recent updates</p>
+                                            </div>`;
+                                        return;
+                                    }
+                                    
+                                    const posts = [];
+                                    snapshot.forEach((child) => { posts.push(child.val()); });
+                                    posts.reverse(); // Newest first
+                                    
+                                    const recentPosts = posts.slice(0, 2); // 2 posts lang sa dashboard
+
+                                    recentPosts.forEach((post) => {
+                                        let timeString = 'Just now';
+                                        if (post.createdAt) {
+                                            const date = new Date(post.createdAt);
+                                            timeString = date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                        }
+                                        
+                                        const postHTML = `
+                                            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <div class="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                                                        <i class="fa-solid fa-bullhorn text-sm"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-bold text-brand-primary text-sm">${post.adminName || 'Barangay Admin'}</h4>
+                                                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${timeString}</span>
+                                                    </div>
+                                                </div>
+                                                ${post.title ? `<h5 class="text-base font-bold text-gray-900 mb-1 leading-tight">${post.title}</h5>` : ''}
+                                                <p class="text-gray-600 text-sm leading-relaxed whitespace-pre-line line-clamp-3">${post.content}</p>
+                                            </div>
+                                        `;
+                                        feedStream.insertAdjacentHTML('beforeend', postHTML);
+                                    });
+                                });
+                            } catch (err) {
+                                console.error("Feed Error:", err);
+                                feedStream.innerHTML = '<p class="text-red-500 text-sm p-4">Error loading feed. Please refresh.</p>';
+                            }
+                        }
+
                     } else {
                         window.location.href = 'index.html';
                     }
                 });
 
-                window.handleLogout = async () => {
+                window.handleLogout = async function() {
                     try {
                         await signOut(window.fbAuth);
                         window.location.href = 'index.html';
-                    } catch (error) {
-                        alert("Error logging out.");
-                        console.error("Logout error:", error);
-                    }
+                    } catch (error) { alert("Error logging out."); }
                 };
             }
-        }, 50); 
+        }, 50);
     </script>
 </body>
 </html>
