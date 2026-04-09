@@ -5,65 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC Connect - Dashboard</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script type="module" src="home.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-theme.js"></script>
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: { purple: '#381A8B', orange: '#FF7A45' } },
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], }
-                }
-            }
-        }
-    </script>
+    <script type="module" src="home.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #F8F9FA; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden; 
+            background-color: #E0F2FE; 
+            margin: 0; 
+        }
 
-        ::-webkit-scrollbar { width: 6px; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* 1. DESKTOP SIDEBAR CSS (Smooth Hover) */
         #desktop-sidebar {
-            width: 5.5rem; /* Slim state */
-            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
-            overflow: hidden;
+            width: 5.5rem; 
+            transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease;
+            overflow-x: hidden;
             white-space: nowrap;
         }
-        /* Expands when hovered */
-        #desktop-sidebar:hover {
-            width: 17rem;
-            box-shadow: 10px 0 25px rgba(0,0,0,0.05);
-        }
-        #desktop-sidebar .nav-text {
-            opacity: 0;
-            transform: translateX(-10px);
-            transition: all 0.3s ease;
-            pointer-events: none;
-        }
-        #desktop-sidebar:hover .nav-text {
-            opacity: 1;
-            transform: translateX(0);
-            transition-delay: 0.1s; 
-            pointer-events: auto;
-        }
+        #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
+        #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
+        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); transition-delay: 0.1s; pointer-events: auto; }
 
-        /* 2. MOBILE SIDEBAR CSS */
-        #mobile-sidebar {
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        #mobile-overlay {
-            transition: opacity 0.3s ease;
-        }
+        #mobile-sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        #mobile-overlay { transition: opacity 0.3s ease; }
 
-        /* 3. OTHER ANIMATIONS */
         .footer-hidden { transform: translateY(150%); opacity: 0; pointer-events: none; }
         .fab-hidden { transform: translateY(30px) scale(0.8); opacity: 0; pointer-events: none; }
         #sticky-footer, #restore-footer-btn { transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -73,6 +51,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-enter { animation: slideDownFade 0.6s ease forwards; }
+        .animate-enter-delay { animation: slideDownFade 0.6s ease 0.15s forwards; opacity: 0; }
 
         #notification-wrapper { pointer-events: none; }
         #notification-wrapper.active { pointer-events: auto; }
@@ -82,57 +61,48 @@
         #notification-wrapper.active #notification-box { opacity: 1; transform: scale(1) translateY(0); }
     </style>
 </head>
-<body class="h-screen flex text-gray-800 selection:bg-brand-orange selection:text-white">
+<body class="h-screen flex text-gray-800 selection:bg-brand-accent selection:text-white">
 
-    <div id="mobile-overlay" class="fixed inset-0 bg-brand-purple/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
+    <div id="mobile-overlay" class="fixed inset-0 bg-brand-primary/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
 
     <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl">
-        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-orange transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full">
+        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent active:text-brand-accent-active transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full">
             <i class="fa-solid fa-xmark text-lg"></i>
         </button>
 
         <div class="flex items-center px-6 mb-8 shrink-0">
-            <div class="w-10 h-10 rounded-xl bg-brand-purple/10 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-leaf text-brand-purple text-xl"></i>
+            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="EC Logo" class="w-full h-full object-contain">
             </div>
-            <span class="font-bold text-brand-purple ml-4 text-lg tracking-tight">EC <span class="text-brand-orange">Connect</span></span>
+            <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
         </div>
 
-        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto">
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-orange bg-orange-50 text-brand-purple">
-                <i class="fa-solid fa-border-all text-xl w-6 text-center text-brand-purple"></i>
+        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary active:bg-green-100 transition-colors">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center text-brand-primary"></i>
                 <span class="ml-4 font-semibold text-[15px]">Dashboard</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
                 <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i>
                 <span class="ml-4 font-medium text-[15px]">CivicFeed</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
-                <i class="fa-regular fa-file-lines text-xl w-6 text-center"></i>
-                <span class="ml-4 font-medium text-[15px]">Request</span>
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
-                <i class="fa-solid fa-chart-pie text-xl w-6 text-center"></i>
-                <span class="ml-4 font-medium text-[15px]">Reports</span>
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
                 <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i>
                 <span class="ml-4 font-medium text-[15px]">Appointments</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
                 <i class="fa-solid fa-gear text-xl w-6 text-center"></i>
                 <span class="ml-4 font-medium text-[15px]">Settings</span>
             </a>
         </nav>
 
         <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
-            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors">
                 <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i>
                 <span class="ml-4 font-medium text-[15px]">Log Out</span>
             </a>
-            
-            <a href="profile.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 overflow-hidden cursor-pointer transition-colors w-full">
-                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=381A8B&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 active:bg-gray-100 overflow-hidden cursor-pointer transition-colors w-full">
+                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
                 <div class="ml-3 flex flex-col justify-center overflow-hidden">
                     <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
                     <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
@@ -141,50 +111,41 @@
         </div>
     </aside>
 
-    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] rounded-br-none py-6 border-r border-gray-100">
+    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] rounded-br-none py-6 border-r border-gray-100 shadow-sm">
         
         <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
-            <div class="w-10 h-10 rounded-xl bg-brand-purple/10 flex items-center justify-center shrink-0 hover:bg-brand-orange/20 transition-colors cursor-pointer">
-                <i class="fa-solid fa-leaf text-brand-purple text-xl"></i>
+            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="EC Logo" class="w-full h-full object-contain">
             </div>
-            <span class="nav-text font-bold text-brand-purple ml-4 text-lg tracking-tight cursor-default">EC<span class="text-brand-orange">Connect</span></span>
+            <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight cursor-default">EC<span class="text-brand-secondary">Connect</span></span>
         </div>
 
-        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto">
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-orange bg-orange-50 text-brand-purple">
+        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary">
                 <i class="fa-solid fa-border-all text-xl w-6 text-center"></i>
                 <span class="nav-text ml-4 font-semibold text-[15px]">Dashboard</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
                 <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i>
                 <span class="nav-text ml-4 font-medium text-[15px]">CivicFeed</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
-                <i class="fa-regular fa-file-lines text-xl w-6 text-center"></i>
-                <span class="nav-text ml-4 font-medium text-[15px]">Request</span>
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
-                <i class="fa-solid fa-chart-pie text-xl w-6 text-center"></i>
-                <span class="nav-text ml-4 font-medium text-[15px]">Reports</span>
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
                 <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i>
                 <span class="nav-text ml-4 font-medium text-[15px]">Appointments</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-purple transition-colors">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
                 <i class="fa-solid fa-gear text-xl w-6 text-center"></i>
                 <span class="nav-text ml-4 font-medium text-[15px]">Settings</span>
             </a>
         </nav>
 
         <div class="mt-auto px-3 pt-4 shrink-0 flex flex-col gap-2">
-            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors">
                 <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i>
                 <span class="nav-text ml-4 font-medium text-[15px]">Log Out</span>
             </a>
-            
-            <a href="profile.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-100 overflow-hidden w-full">
-                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=381A8B&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+            <a href="ILAGAY_ANG_LINK_DITO.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100 overflow-hidden w-full">
+                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
                 <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
                     <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
                     <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
@@ -195,142 +156,144 @@
 
     <main class="flex-1 lg:ml-[5.5rem] flex flex-col relative min-w-0 w-full h-screen">
         
-        <header class="h-16 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#F8F9FA]/80 backdrop-blur-md z-30 sticky top-0">
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#E0F2FE]/80 backdrop-blur-md z-30 sticky top-0 border-b border-white/40">
             <div class="flex items-center gap-4">
-                <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-brand-purple hover:bg-white hover:shadow-sm rounded-full transition-all focus:outline-none -ml-2">
+                <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-brand-primary hover:bg-white hover:shadow-sm active:bg-gray-100 rounded-full transition-all focus:outline-none -ml-2">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
-
-                <div class="text-sm font-medium text-gray-400">Portal / <span class="text-brand-purple font-semibold">Dashboard</span></div>
+                <div class="text-sm font-medium text-gray-500">Portal / <span class="text-brand-primary font-semibold">Dashboard</span></div>
             </div>
             
-            <button onclick="toggleNotifications()" class="w-10 h-10 rounded-full hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm flex items-center justify-center transition-all text-brand-purple relative focus:outline-none group">
+            <button onclick="toggleNotifications()" class="w-10 h-10 rounded-full hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm active:bg-gray-50 flex items-center justify-center transition-all text-brand-primary relative focus:outline-none group">
                 <i class="fa-regular fa-bell text-xl group-hover:animate-bounce"></i>
-                <span class="absolute top-2 right-2.5 w-2 h-2 bg-brand-orange rounded-full border border-white"></span>
+                <span class="absolute top-2 right-2.5 w-2 h-2 bg-brand-accent rounded-full border border-white"></span>
             </button>
         </header>
 
-        <div id="main-scroll-area" class="flex-1 overflow-y-auto px-4 md:px-10 pb-40 pt-2 relative z-10 transition-[padding] duration-300">
-            <div class="max-w-7xl mx-auto">
+        <div id="main-scroll-area" class="flex-1 overflow-y-auto px-4 md:px-10 pt-4 pb-32 md:pb-36 relative z-10 transition-[padding] duration-300">
+            <div class="max-w-6xl mx-auto">
                 
-                <div class="mb-8 animate-enter opacity-0">
-                    <div class="relative w-full h-48 md:h-56 rounded-3xl overflow-hidden shadow-sm">
+                <div class="mb-6 md:mb-8 animate-enter opacity-0">
+                    <div class="relative w-full h-40 sm:h-48 md:h-56 rounded-3xl overflow-hidden shadow-sm border border-black/5">
                         <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1773930615/HomepageBlk2-Image-AboutRosario_lef5zu.jpg" alt="Community" class="absolute inset-0 w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-r from-brand-purple/90 via-black/50 to-transparent"></div>
-                        <div class="absolute inset-0 p-8 md:p-10 flex flex-col justify-center">
-                            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-md">Magandang araw, <span id="welcome-name">Citizen</span>!</h1>
-                            <p class="text-gray-200 font-medium md:text-lg drop-shadow-md">What would you like to do today?</p>
+                        <div class="absolute inset-0 bg-gradient-to-r from-brand-primary/95 via-brand-primary/70 to-transparent"></div>
+                        <div class="absolute inset-0 p-6 sm:p-8 md:p-10 flex flex-col justify-center">
+                            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 md:mb-2 drop-shadow-md">Magandang araw, <span id="welcome-name">Citizen</span>!</h1>
+                            <p class="text-gray-200 font-medium text-sm md:text-lg drop-shadow-md">What would you like to do today?</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-file-signature text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                <div class="flex flex-wrap justify-center md:grid md:grid-cols-5 gap-3 md:gap-4 pb-4 md:pb-0 animate-enter opacity-0" style="animation-delay: 0.1s;">
+                    
+                    <a href="ILAGAY_ANG_LINK_DITO.html" class="w-[30%] max-w-[110px] md:max-w-none md:w-auto bg-white rounded-[1rem] md:rounded-2xl py-4 md:py-6 px-2 md:px-4 shadow-sm border border-gray-100 hover:border-brand-accent/40 hover:shadow-md hover:-translate-y-1 active:bg-green-50 active:translate-y-0 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-brand-accent/10 flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 group-hover:bg-brand-accent/20 transition-all duration-300">
+                            <i class="fa-solid fa-file-signature text-brand-accent text-lg md:text-xl group-hover:-rotate-6 transition-transform"></i>
                         </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Services</span>
-                    </button>
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-book-open-reader text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        <span class="font-semibold text-brand-primary text-[11px] sm:text-xs md:text-sm leading-tight group-hover:text-brand-accent transition-colors">Services</span>
+                    </a>
+
+                    <a href="ILAGAY_ANG_LINK_DITO.html" class="w-[30%] max-w-[110px] md:max-w-none md:w-auto bg-white rounded-[1rem] md:rounded-2xl py-4 md:py-6 px-2 md:px-4 shadow-sm border border-gray-100 hover:border-brand-accent/40 hover:shadow-md hover:-translate-y-1 active:bg-green-50 active:translate-y-0 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-brand-accent/10 flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 group-hover:bg-brand-accent/20 transition-all duration-300">
+                            <i class="fa-solid fa-book-open-reader text-brand-accent text-lg md:text-xl group-hover:-rotate-6 transition-transform"></i>
                         </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Citizen Guide</span>
-                    </button>
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-laptop-code text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        <span class="font-semibold text-brand-primary text-[11px] sm:text-xs md:text-sm leading-tight group-hover:text-brand-accent transition-colors">Citizen Guide</span>
+                    </a>
+
+                    <a href="ILAGAY_ANG_LINK_DITO.html" class="w-[30%] max-w-[110px] md:max-w-none md:w-auto bg-white rounded-[1rem] md:rounded-2xl py-4 md:py-6 px-2 md:px-4 shadow-sm border border-gray-100 hover:border-brand-accent/40 hover:shadow-md hover:-translate-y-1 active:bg-green-50 active:translate-y-0 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-brand-accent/10 flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 group-hover:bg-brand-accent/20 transition-all duration-300">
+                            <i class="fa-solid fa-bullhorn text-brand-accent text-lg md:text-xl group-hover:-rotate-6 transition-transform"></i>
                         </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">e-Services</span>
-                    </button>
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-truck-medical text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        <span class="font-semibold text-brand-primary text-[11px] sm:text-xs md:text-sm leading-tight group-hover:text-brand-accent transition-colors">Report</span>
+                    </a>
+
+                    <a href="ILAGAY_ANG_LINK_DITO.html" class="w-[30%] max-w-[110px] md:max-w-none md:w-auto bg-white rounded-[1rem] md:rounded-2xl py-4 md:py-6 px-2 md:px-4 shadow-sm border border-gray-100 hover:border-brand-accent/40 hover:shadow-md hover:-translate-y-1 active:bg-green-50 active:translate-y-0 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-brand-accent/10 flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 group-hover:bg-brand-accent/20 transition-all duration-300">
+                            <i class="fa-solid fa-truck-medical text-brand-accent text-lg md:text-xl group-hover:-rotate-6 transition-transform"></i>
                         </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Emergency</span>
-                    </button>
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-graduation-cap text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
+                        <span class="font-semibold text-brand-primary text-[11px] sm:text-xs md:text-sm leading-tight group-hover:text-brand-accent transition-colors">Emergency</span>
+                    </a>
+
+                    <a href="ILAGAY_ANG_LINK_DITO.html" class="w-[30%] max-w-[110px] md:max-w-none md:w-auto bg-white rounded-[1rem] md:rounded-2xl py-4 md:py-6 px-2 md:px-4 shadow-sm border border-gray-100 hover:border-brand-accent/40 hover:shadow-md hover:-translate-y-1 active:bg-green-50 active:translate-y-0 transition-all duration-300 flex flex-col items-center justify-center text-center group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-brand-accent/10 flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 group-hover:bg-brand-accent/20 transition-all duration-300">
+                            <i class="fa-solid fa-file-lines text-brand-accent text-lg md:text-xl group-hover:-rotate-6 transition-transform"></i>
                         </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Students</span>
-                    </button>
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-lightbulb text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
-                        </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Startup</span>
-                    </button>
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-store text-brand-orange text-xl group-hover:-rotate-6 transition-transform"></i>
-                        </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">Business</span>
-                    </button>
-                    <button class="bg-white rounded-2xl py-6 px-4 shadow-sm border border-gray-100 hover:border-brand-orange/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center group">
-                        <div class="w-14 h-14 rounded-full bg-brand-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-brand-orange/20 transition-all duration-300">
-                            <i class="fa-solid fa-arrow-right-long text-brand-orange text-xl group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                        <span class="font-semibold text-brand-purple text-sm group-hover:text-brand-orange transition-colors">View All</span>
-                    </button>
+                        <span class="font-semibold text-brand-primary text-[11px] sm:text-xs md:text-sm leading-tight group-hover:text-brand-accent transition-colors">Request</span>
+                    </a>
                 </div>
+
+                <div class="mt-6 md:mt-8 animate-enter-delay">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg md:text-xl font-bold text-brand-primary flex items-center gap-2">
+                            <i class="fa-regular fa-newspaper text-brand-accent"></i> EC Feed
+                        </h2>
+                    </div>
+
+                    <div id="ec-feed-stream" class="flex flex-col gap-4">
+                        <div class="text-center text-brand-primary/60 py-8 bg-white rounded-2xl border border-gray-100">
+                            <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i>
+                            <p class="text-sm font-medium mt-2">Loading announcements...</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <div id="sticky-footer" class="absolute bottom-0 left-0 w-full bg-brand-purple shadow-[0_-8px_30px_rgba(0,0,0,0.12)] z-20 flex flex-col lg:flex-row items-center justify-between px-5 md:px-10 py-4 gap-4">
-            <button onclick="hideFooter()" class="lg:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/30 rounded-full text-white transition-colors shrink-0">
+        <div id="sticky-footer" class="fixed bottom-0 left-0 lg:left-[5.5rem] right-0 bg-brand-primary shadow-[0_-8px_30px_rgba(0,0,0,0.12)] z-40 flex flex-col lg:flex-row items-center justify-between px-5 md:px-10 py-4 gap-4">
+            <button onclick="hideFooter()" class="lg:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/30 active:bg-white/50 rounded-full text-white transition-colors shrink-0">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
 
             <div class="flex items-start lg:items-center gap-4 text-left text-white w-full lg:w-auto pr-8 lg:pr-0">
                 <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-bullhorn text-brand-orange md:text-xl"></i>
+                    <i class="fa-solid fa-bullhorn text-brand-accent md:text-xl"></i>
                 </div>
                 <div class="flex-1">
                     <p class="text-sm font-medium leading-snug">
-                        <span class="text-brand-orange font-bold mr-1 block md:inline">Help us improve our town.</span> 
+                        <span class="text-brand-accent font-bold mr-1 block md:inline">Help us improve our town.</span> 
                         Spotted an issue in your area? Contact us so we can fix it.
                     </p>
                 </div>
             </div>
             
             <div class="flex w-full lg:w-auto items-center justify-center gap-3 shrink-0 pt-2 lg:pt-0">
-                <button class="flex-1 lg:flex-none px-5 py-2.5 bg-white text-brand-purple font-bold text-sm rounded-lg hover:bg-gray-100 transition-colors">
+                <a href="ILAGAY_ANG_LINK_DITO.html" class="flex-1 lg:flex-none px-5 py-2.5 bg-white text-brand-primary font-bold text-sm rounded-lg text-center hover:bg-gray-100 active:bg-gray-200 transition-colors">
                     View Reports
-                </button>
-                <button class="flex-1 lg:flex-none px-5 py-2.5 bg-brand-orange text-white font-bold text-sm rounded-lg hover:bg-[#E66935] transition-colors">
+                </a>
+                <a href="ILAGAY_ANG_LINK_DITO.html" class="flex-1 lg:flex-none px-5 py-2.5 bg-brand-accent text-white font-bold text-sm rounded-lg text-center hover:bg-[#156e3e] active:bg-[#115a32] transition-colors">
                     Report an issue
-                </button>
-                <button onclick="hideFooter()" class="hidden lg:flex ml-2 w-9 h-9 items-center justify-center bg-white/10 hover:bg-white/30 rounded-full text-white transition-colors shrink-0">
+                </a>
+                <button onclick="hideFooter()" class="hidden lg:flex ml-2 w-9 h-9 items-center justify-center bg-white/10 hover:bg-white/30 active:bg-white/50 rounded-full text-white transition-colors shrink-0">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
 
-        <button id="restore-footer-btn" onclick="restoreFooter()" class="fab-hidden fixed bottom-6 right-6 lg:bottom-8 lg:right-10 w-14 h-14 bg-brand-orange text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#E66935] transition-all z-30 focus:outline-none" title="Restore Issue Report Footer">
+        <button id="restore-footer-btn" onclick="restoreFooter()" class="fab-hidden fixed bottom-6 right-6 lg:bottom-8 lg:right-10 w-14 h-14 bg-brand-accent text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#156e3e] active:scale-95 transition-all z-40 focus:outline-none" title="Restore Issue Report Footer">
             <i class="fa-solid fa-bullhorn text-xl"></i>
             <span class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
         </button>
     </main>
 
     <div id="notification-wrapper" class="fixed inset-0 z-[60]">
-        <div id="notification-backdrop" class="absolute inset-0 bg-brand-purple/40 backdrop-blur-sm" onclick="toggleNotifications()"></div>
+        <div id="notification-backdrop" class="absolute inset-0 bg-brand-primary/40 backdrop-blur-sm" onclick="toggleNotifications()"></div>
         <div id="notification-box" class="absolute right-4 top-20 lg:right-10 w-80 md:w-96 bg-white rounded-[1.5rem] shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
             <div class="p-4 border-b border-gray-50 flex justify-between items-center bg-white">
-                <h3 class="font-bold text-brand-purple text-lg">Notifications</h3>
-                <button onclick="toggleNotifications()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:text-brand-orange hover:bg-orange-50 transition-colors focus:outline-none">
+                <h3 class="font-bold text-brand-primary text-lg">Notifications</h3>
+                <button onclick="toggleNotifications()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:text-brand-accent hover:bg-green-50 active:bg-green-100 transition-colors focus:outline-none">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="p-2 max-h-[60vh] overflow-y-auto flex flex-col gap-1 bg-gray-50/30">
-                <div class="flex gap-4 p-3 rounded-xl bg-orange-50/80 border border-brand-orange/20 cursor-pointer hover:bg-orange-100 transition-colors">
-                    <div class="w-10 h-10 rounded-full bg-white text-brand-orange flex items-center justify-center shrink-0 shadow-sm">
+                <div class="flex gap-4 p-3 rounded-xl bg-green-50/80 border border-brand-accent/20 cursor-pointer hover:bg-green-100 active:bg-green-200 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-white text-brand-accent flex items-center justify-center shrink-0 shadow-sm">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                     <div>
                         <p class="font-bold text-gray-800 text-sm">Issue Update</p>
                         <p class="text-gray-600 text-[13px] mt-0.5 leading-snug">Your report "Broken Streetlight" on Mabini St. has been marked as <strong>Resolved</strong>.</p>
-                        <span class="text-[11px] text-brand-orange font-semibold mt-1 block">Just now</span>
+                        <span class="text-[11px] text-brand-accent font-semibold mt-1 block">Just now</span>
                     </div>
                 </div>
             </div>
@@ -362,7 +325,7 @@
             const fab = document.getElementById('restore-footer-btn');
 
             footer.classList.add('footer-hidden');
-            scrollArea.classList.remove('pb-40');
+            scrollArea.classList.remove('pb-32', 'md:pb-36');
             scrollArea.classList.add('pb-8');
             fab.classList.remove('fab-hidden');
         }
@@ -374,7 +337,7 @@
 
             footer.classList.remove('footer-hidden');
             scrollArea.classList.remove('pb-8');
-            scrollArea.classList.add('pb-40');
+            scrollArea.classList.add('pb-32', 'md:pb-36');
             fab.classList.add('fab-hidden');
         }
     </script>
@@ -384,20 +347,17 @@
             if (window.fbAuth && window.fbFunctions) {
                 clearInterval(checkFirebase);
                 
-                const { onAuthStateChanged, signOut, doc, getDoc } = window.fbFunctions;
+                const { onAuthStateChanged, signOut, doc, getDoc, collection, query, orderBy, onSnapshot } = window.fbFunctions;
 
-                // 1. Check if user is logged in
                 onAuthStateChanged(window.fbAuth, async (user) => {
                     if (user) {
                         try {
-                            // 2. Fetch the user's data from Firestore using their unique ID
                             const docRef = doc(window.fbDb, "profile", user.uid);
                             const docSnap = await getDoc(docRef);
 
                             if (docSnap.exists()) {
                                 const data = docSnap.data();
                                 
-                                // Format the strings
                                 const firstName = data.first_name || "Citizen";
                                 const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
 
@@ -408,33 +368,74 @@
                                     locationText = data.city;
                                 }
 
-                                // 3. Update the Text UI
                                 document.getElementById('welcome-name').textContent = firstName;
                                 document.getElementById('desktop-sidebar-name').textContent = fullName;
                                 document.getElementById('mobile-sidebar-name').textContent = fullName;
                                 document.getElementById('desktop-sidebar-location').textContent = locationText;
                                 document.getElementById('mobile-sidebar-location').textContent = locationText;
-                                document.getElementById('desktop-sidebar-location').title = locationText;
 
-                                // 4. Update the Image UI (Checks for new profile pic first, then fallback to ID pic)
                                 const currentImageUrl = data.profile_image_url || data.id_image_url;
                                 if (currentImageUrl) {
                                     document.getElementById('desktop-sidebar-pic').src = currentImageUrl;
                                     document.getElementById('mobile-sidebar-pic').src = currentImageUrl;
                                 }
+
+                                const feedStream = document.getElementById('ec-feed-stream');
+
+                                if (collection && query && onSnapshot) {
+                                    const feedRef = collection(window.fbDb, "admin_announcements"); 
+                                    const q = query(feedRef, orderBy("createdAt", "desc"));
+                                    
+                                    onSnapshot(q, (snapshot) => {
+                                        feedStream.innerHTML = ''; 
+                                        
+                                        if(snapshot.empty) {
+                                            feedStream.innerHTML = '<div class="text-center text-gray-500 font-medium py-6 bg-white rounded-2xl border border-gray-100 shadow-sm">No announcements from the Admin yet.</div>';
+                                            return;
+                                        }
+                                        
+                                        snapshot.forEach((docSnap) => {
+                                            const post = docSnap.data();
+                                            
+                                            let timeString = 'Just now';
+                                            if (post.createdAt) {
+                                                const date = post.createdAt.toDate();
+                                                timeString = date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                            }
+                                            
+                                            const postHTML = `
+                                                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 animate-enter opacity-0">
+                                                    <div class="flex items-center gap-3 mb-3">
+                                                        <div class="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                                                            <i class="fa-solid fa-bullhorn"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h4 class="font-bold text-brand-primary text-sm">${post.adminName || 'Barangay Admin'}</h4>
+                                                            <span class="text-xs text-gray-400 font-medium">${timeString}</span>
+                                                        </div>
+                                                    </div>
+                                                    ${post.title ? `<h5 class="font-bold text-gray-800 mb-1">${post.title}</h5>` : ''}
+                                                    <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line">${post.content}</p>
+                                                </div>
+                                            `;
+                                            feedStream.insertAdjacentHTML('beforeend', postHTML);
+                                        });
+                                    });
+                                } else {
+                                    feedStream.innerHTML = '<div class="text-center text-red-500 py-4">Database connection functions not found. Please export collection, query, orderBy, and onSnapshot from service.js</div>';
+                                }
+
                             } else {
-                                console.log("User profile data not found in Firestore.");
+                                console.log("User profile data not found.");
                             }
                         } catch (error) {
                             console.error("Error retrieving user data:", error);
                         }
                     } else {
-                        // User is NOT logged in -> kick them back to the login page
                         window.location.href = 'index.html';
                     }
                 });
 
-                // 5. Attach the logout function so the HTML buttons can use it
                 window.handleLogout = async () => {
                     try {
                         await signOut(window.fbAuth);
