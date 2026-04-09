@@ -34,19 +34,22 @@ console.log("Firebase initialized for Report Page!");
 const cloudName = 'dgoho5phg'; 
 const uploadPreset = 'ec_connect'; 
 
+// Global variable to hold data for the preview modal
+window.pendingReportData = null;
+
 // ==========================================
-// IMAGE PREVIEW LOGIC
+// IMAGE PREVIEW LOGIC (Form)
 // ==========================================
 window.handleImageSelect = function() {
     const input = document.getElementById('report-images');
     const previewContainer = document.getElementById('image-preview-container');
     const files = Array.from(input.files);
     
-    previewContainer.innerHTML = ''; // Clear old previews
+    previewContainer.innerHTML = ''; 
     
     if (files.length > 5) {
         alert("You can only upload up to 5 images.");
-        input.value = ''; // Reset input
+        input.value = ''; 
         previewContainer.classList.add('hidden');
         return;
     }
@@ -101,7 +104,7 @@ window.getLocation = function() {
                 btnLoc.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Get Location';
                 btnLoc.disabled = false;
             },
-            { enableHighAccuracy: true } // Para mas exacto
+            { enableHighAccuracy: true } 
         );
     } else {
         alert("Geolocation is not supported by your browser.");
@@ -111,7 +114,7 @@ window.getLocation = function() {
 };
 
 // ==========================================
-// SUBMIT REPORT LOGIC
+// 1. TRIGGER PREVIEW MODAL
 // ==========================================
 window.submitReport = async function(e, currentUserId, currentUserName) {
     e.preventDefault();
@@ -130,19 +133,92 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
         return;
     }
 
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading and Submitting...';
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Preparing Preview...';
     btn.disabled = true;
     msgBox.classList.add('hidden');
 
     try {
+        // Kunin ang kumpletong details mula sa Firestore Profile
+        let userContact = "Not provided";
+        let userAddress = "Location Not Set";
+        const docRef = doc(dbFirestore, "profile", currentUserId);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            userContact = data.mobile_number || data.phone || "Not provided";
+            const addressParts = [data.barangay, data.city, data.province].filter(Boolean);
+            if (addressParts.length > 0) userAddress = addressParts.join(', ');
+        }
+
+        // I-save pansamantala ang data
+        window.pendingReportData = {
+            currentUserId,
+            currentUserName,
+            userContact,
+            userAddress,
+            description,
+            lat,
+            long,
+            imageFiles
+        };
+
+        // I-populate ang Preview Modal HTML
+        document.getElementById('prev-name').textContent = currentUserName;
+        document.getElementById('prev-number').textContent = userContact;
+        document.getElementById('prev-address').textContent = userAddress;
+        document.getElementById('prev-desc').textContent = description;
+        document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
+
+        // I-populate ang Preview Images
+        const previewImagesContainer = document.getElementById('prev-images');
+        const formImageContainer = document.getElementById('image-preview-container');
+        const imgSection = document.getElementById('prev-img-section');
+        
+        previewImagesContainer.innerHTML = '';
+        if (formImageContainer.children.length > 0) {
+            imgSection.classList.remove('hidden');
+            Array.from(formImageContainer.children).forEach(img => {
+                const clone = img.cloneNode(true);
+                clone.className = "w-20 h-20 object-cover rounded-lg shadow-sm border border-gray-200 shrink-0";
+                previewImagesContainer.appendChild(clone);
+            });
+        } else {
+            imgSection.classList.add('hidden');
+        }
+
+        // Ipakita ang modal
+        document.getElementById('preview-modal').classList.remove('hidden');
+
+    } catch (error) {
+        console.error("Error loading preview:", error);
+        msgBox.textContent = "Error loading user details.";
+        msgBox.classList.remove('hidden');
+    } finally {
+        btn.innerHTML = '<i class="fa-solid fa-eye"></i> Review & Submit';
+        btn.disabled = false;
+    }
+};
+
+// ==========================================
+// 2. ACTUAL SUBMIT TO FIREBASE (Confirmed)
+// ==========================================
+window.confirmReportSubmit = async function() {
+    if (!window.pendingReportData) return;
+
+    const { currentUserId, currentUserName, userContact, userAddress, description, lat, long, imageFiles } = window.pendingReportData;
+    
+    const btnConfirm = document.getElementById('btn-confirm-submit');
+    const msgBox = document.getElementById('report-msg');
+
+    btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
+    btnConfirm.disabled = true;
+
+    try {
         let uploadedImageUrls = [];
 
-        // 1. Upload Images to Cloudinary (Kung may pinili)
+        // Upload to Cloudinary
         if (imageFiles.length > 0) {
-            msgBox.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Uploading ${imageFiles.length} image(s)...`;
-            msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-blue-50 text-blue-600 block mt-2";
-            msgBox.classList.remove('hidden');
-
             for (let i = 0; i < imageFiles.length; i++) {
                 const formData = new FormData();
                 formData.append('file', imageFiles[i]);
@@ -159,25 +235,27 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
             }
         }
 
-        msgBox.innerHTML = `<i class="fa-solid fa-database"></i> Saving report...`;
-
-        // 2. Save to Realtime Database
-        // Gumawa tayo ng "reports" collection. Ang admin panel mo, dito kukuha ng listahan.
+        // Save to Firebase (kasama na contact at address)
         const newReportRef = push(ref(dbRealtime, "reports"));
         await set(newReportRef, {
             userId: currentUserId,
             userName: currentUserName,
+            userContact: userContact,
+            userAddress: userAddress,
             description: description,
             latitude: parseFloat(lat),
             longitude: parseFloat(long),
-            images: uploadedImageUrls, // Array ng Cloudinary URLs
-            status: "Pending", // Default status pagka-submit
+            images: uploadedImageUrls,
+            status: "Pending", 
             createdAt: serverTimestamp()
         });
 
-        // 3. Reset Form & Success Message
+        // Close Modal & Reset Form
+        document.getElementById('preview-modal').classList.add('hidden');
+        
         msgBox.textContent = "Report successfully submitted! Salamat sa tulong.";
         msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-green-50 text-green-600 block mt-2";
+        msgBox.classList.remove('hidden');
         
         document.getElementById('report-form').reset();
         document.getElementById('image-preview-container').innerHTML = '';
@@ -193,13 +271,22 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
         document.getElementById('location-status').classList.add('hidden');
 
         setTimeout(() => { msgBox.classList.add('hidden'); }, 5000);
+        
+        // Clear pending data
+        window.pendingReportData = null;
 
     } catch (error) {
         console.error(error);
+        document.getElementById('preview-modal').classList.add('hidden');
         msgBox.textContent = "Submission failed. Please check your connection.";
         msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-600 block mt-2";
+        msgBox.classList.remove('hidden');
     } finally {
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Report';
-        btn.disabled = false;
+        btnConfirm.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Confirm Submit';
+        btnConfirm.disabled = false;
     }
+};
+
+window.closePreview = function() {
+    document.getElementById('preview-modal').classList.add('hidden');
 };
