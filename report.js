@@ -268,7 +268,7 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
 
     try {
         // 1. Fetch Contact and Address in the background
-        let userContact = "Not provided";
+        let usermobile = "Not provided";
         let userAddress = "Location Not Set";
         
         const docRef = doc(dbFirestore, "profile", currentUserId);
@@ -310,7 +310,7 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
         await set(newReportRef, {
             userId: currentUserId,
             userName: currentUserName,
-            userContact: userContact,       // Na-save na
+            userContact: usermobile,       // Na-save na
             userAddress: userAddress,       // Na-save na
             description: description,
             latitude: parseFloat(lat),
