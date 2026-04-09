@@ -66,8 +66,16 @@
             <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary"><i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i><span class="ml-4 font-semibold">Appointments</span></a>
             <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Settings</span></a>
         </nav>
+        
         <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
             <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium">Log Out</span></a>
+            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
+                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </div>
         </div>
     </aside>
 
@@ -112,8 +120,8 @@
                                 <i class="fa-regular fa-calendar-plus text-lg"></i>
                             </div>
                             <div>
-                                <h2 class="text-xl font-bold text-brand-primary">Book a Slot</h2>
-                                <p class="text-xs text-gray-500 font-medium">Select your preferred office, date, and time.</p>
+                                <h2 class="text-xl font-bold text-brand-primary">Book Appointment</h2>
+                                <p class="text-xs text-gray-500 font-medium">Select your preferred date and slot.</p>
                             </div>
                         </div>
                             
@@ -144,7 +152,7 @@
 
                             <div id="seat-container" class="hidden bg-slate-50 p-5 rounded-2xl border border-slate-200">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-                                    <label class="block text-sm font-bold text-brand-primary">Select an Available Seat</label>
+                                    <label class="block text-sm font-bold text-brand-primary">Select a Slot / Seat</label>
                                     <div class="flex gap-3 text-[10px] font-bold text-gray-500 uppercase">
                                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#166534]"></span> Available</span>
                                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#b91c1c]"></span> Taken</span>
@@ -162,7 +170,7 @@
                             <p id="apt-msg" class="hidden p-3 rounded-xl text-sm font-semibold text-center"></p>
                             
                             <button type="submit" id="btn-book" class="w-full py-4 mt-2 bg-brand-accent text-white font-bold rounded-xl hover:bg-[#156e3e] active:scale-[0.98] shadow-md transition-all flex items-center justify-center gap-2">
-                                <i class="fa-regular fa-calendar-check"></i> Submit Booking
+                                <i class="fa-regular fa-calendar-check"></i> Submit Booking Request
                             </button>
                         </form>
                     </div>
@@ -225,7 +233,7 @@
         let currentUserId = null;
         let currentUserName = "Citizen";
 
-        // 1. INITIALIZE PAGE
+        // 1. INITIALIZE PAGE & PROFILE
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
@@ -236,17 +244,35 @@
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         currentUserName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
-                        let locationText = data.city || "Location Not Set";
                         
-                        document.getElementById('desktop-sidebar-name').textContent = currentUserName;
-                        document.getElementById('mobile-sidebar-name').textContent = currentUserName;
-                        document.getElementById('desktop-sidebar-location').textContent = locationText;
-                        document.getElementById('mobile-sidebar-location').textContent = locationText;
-
-                        if (data.profile_image_url) {
-                            document.getElementById('desktop-sidebar-pic').src = data.profile_image_url;
-                            document.getElementById('mobile-sidebar-pic').src = data.profile_image_url;
+                        // Kumpletong pagkuha ng location
+                        let locationText = "Location Not Set";
+                        if(data.barangay && data.city && data.province) {
+                            locationText = `${data.barangay}, ${data.city}, ${data.province}`;
+                        } else if(data.city) {
+                            locationText = data.city;
                         }
+                        
+                        // SAFETY CHECK: Update HTML only if elements exist
+                        const dName = document.getElementById('desktop-sidebar-name');
+                        const mName = document.getElementById('mobile-sidebar-name');
+                        const dLoc = document.getElementById('desktop-sidebar-location');
+                        const mLoc = document.getElementById('mobile-sidebar-location');
+                        
+                        if (dName) dName.textContent = currentUserName;
+                        if (mName) mName.textContent = currentUserName;
+                        if (dLoc) dLoc.textContent = locationText;
+                        if (mLoc) mLoc.textContent = locationText;
+
+                        // Kumpletong pagkuha ng Profile Picture
+                        const currentImageUrl = data.profile_image_url || data.id_image_url;
+                        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=15518D&color=fff`;
+                        const finalUrl = currentImageUrl ? currentImageUrl : fallbackUrl;
+                        
+                        const dPic = document.getElementById('desktop-sidebar-pic');
+                        const mPic = document.getElementById('mobile-sidebar-pic');
+                        if (dPic) dPic.src = finalUrl;
+                        if (mPic) mPic.src = finalUrl;
                     }
                 } catch (error) { console.log("Profile error:", error); }
 
@@ -347,7 +373,7 @@
                 }
             } catch(err) { 
                 console.error(err);
-                grid.innerHTML = '<p class="col-span-4 text-center text-sm font-bold text-red-500 py-4">Database error. Ensure rules are set.</p>'; 
+                grid.innerHTML = '<p class="col-span-4 text-center text-sm font-bold text-red-500 py-4">Database index error. Check Firebase Rules.</p>'; 
             }
         };
 
