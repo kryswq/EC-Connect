@@ -1,6 +1,7 @@
 // profile.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+// Dito idinagdag ang updatePassword
+import { getAuth, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
@@ -25,6 +26,7 @@ window.fbDb = db;
 window.fbFunctions = {
     onAuthStateChanged,
     signOut,
+    updatePassword, // Idinagdag din dito para maipasa sa HTML
     doc,
     getDoc,
     updateDoc
