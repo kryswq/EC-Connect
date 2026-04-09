@@ -9,15 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="tailwind-theme.js"></script> 
-    
-    <script type="module" src="appointment.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #E0F2FE; margin: 0; }
+        
+        /* SCROLLBARS */
         .hide-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
+        /* SIDEBARS */
         #desktop-sidebar { width: 5.5rem; transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease; overflow-x: hidden; white-space: nowrap; }
         #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
         #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
@@ -25,6 +26,7 @@
         #mobile-sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         #mobile-overlay { transition: opacity 0.3s ease; }
 
+        /* CUSTOM INPUTS */
         .custom-select {
             appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2315518D' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 8l5 5 5-5'/%3e%3c/svg%3e");
             background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em;
@@ -33,15 +35,20 @@
         input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; transition: 0.2s; }
         input[type="date"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 
+        /* SEAT GRID */
         .seat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
         .seat { width: 100%; aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
         .seat.available { background-color: #dcfce7; color: #166534; border: 2px solid #bbf7d0; }
         .seat.available:hover { background-color: #bbf7d0; transform: translateY(-2px); }
         .seat.taken { background-color: #fee2e2; color: #b91c1c; border: 2px solid #fecaca; cursor: not-allowed; opacity: 0.7; }
-        .seat.selected { background-color: #15518D; color: white; border: 2px solid #0f3b68; transform: scale(1.05); }
+        .seat.selected { background-color: #15518D; color: white; border: 2px solid #0f3b68; transform: scale(1.05); box-shadow: 0 4px 10px rgba(21, 81, 141, 0.2); }
         
+        /* STATUS BADGES */
         .status-Pending { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
         .status-Approved { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+        /* PATTERN */
+        .bg-pattern { background-image: radial-gradient(rgba(21, 81, 141, 0.15) 1px, transparent 1px); background-size: 16px 16px; }
     </style>
 </head>
 <body class="h-screen flex text-gray-800 selection:bg-brand-accent selection:text-white">
@@ -50,30 +57,27 @@
     
     <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl transition-transform">
         <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><i class="fa-solid fa-xmark"></i></button>
-        
         <div class="flex items-center px-6 mb-8 shrink-0">
             <div class="w-10 h-10 flex items-center justify-center shrink-0">
                 <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="EC Logo" class="w-full h-full object-contain">
             </div>
             <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
         </div>
-        
         <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium">Dashboard</span></a>
-            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium">CivicFeed</span></a>
-            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary"><i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i><span class="ml-4 font-semibold">Appointments</span></a>
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Settings</span></a>
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium">Home</span></a>
+            
+            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium">EC Feed</span></a>
+           
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i><span class="ml-4 font-semibold">Appointments</span></a>
+            
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Profile</span></a>
         </nav>
-        
         <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
             <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium">Log Out</span></a>
-            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default">
-                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
-                <div class="ml-3 flex flex-col justify-center overflow-hidden">
-                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
-                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
-                </div>
-            </div>
         </div>
     </aside>
 
@@ -83,15 +87,22 @@
             <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight">EC<span class="text-brand-secondary">Connect</span></span>
         </div>
         <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Dashboard</span></a>
-            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">CivicFeed</span></a>
-            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary"><i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i><span class="nav-text ml-4 font-semibold">Appointments</span></a>
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Settings</span></a>
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Dashboard</span></a>
+            
+            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">EC Feed</span></a>
+            
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i><span class="nav-text ml-4 font-semibold">Appointments</span></a>
+            
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Profile</span></a>
         </nav>
         <div class="mt-auto px-3 pt-4">
             <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Log Out</span></a>
             <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
-                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
                 <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
                     <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
                     <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
@@ -101,7 +112,7 @@
     </aside>
 
     <main class="flex-1 lg:ml-[5.5rem] flex flex-col min-w-0 w-full h-screen">
-        <header class="h-16 px-6 md:px-8 flex items-center justify-between bg-[#E0F2FE]/80 backdrop-blur-md sticky top-0 border-b border-white/40">
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between bg-[#E0F2FE]/80 backdrop-blur-md sticky top-0 border-b border-white/40 z-30">
             <div class="flex items-center gap-4">
                 <button onclick="toggleMobileSidebar()" class="lg:hidden text-brand-primary"><i class="fa-solid fa-bars text-xl"></i></button>
                 <div class="text-sm font-medium text-gray-500">Portal / <span class="text-brand-primary font-semibold">Appointments</span></div>
@@ -109,86 +120,90 @@
         </header>
 
         <div class="flex-1 overflow-y-auto px-4 md:px-8 pb-20 pt-6">
-            <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+            <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6 md:gap-8">
                 
-                <div class="w-full lg:w-1/2 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-                    <div class="flex items-center gap-3 border-b border-gray-50 pb-5 mb-5">
-                        <div class="w-10 h-10 rounded-full bg-brand-accent/10 text-brand-accent flex items-center justify-center shrink-0">
-                            <i class="fa-regular fa-calendar-plus text-lg"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-brand-primary">Book Appointment</h2>
-                            <p class="text-xs text-gray-500 font-medium">Select your preferred date and slot.</p>
+                <div class="w-full lg:w-[45%] flex flex-col gap-6">
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative">
+                        <div class="h-24 bg-gradient-to-r from-brand-primary to-[#0f3b68] relative bg-pattern"></div>
+                        
+                        <div class="px-6 md:px-8 pb-8 relative -mt-8">
+                            <div class="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center text-brand-accent text-2xl mb-4 border border-gray-50">
+                                <i class="fa-regular fa-calendar-plus"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-1">Book a Slot</h2>
+                            <p class="text-sm text-gray-500 mb-6">Select your preferred office, date, and time.</p>
+                            
+                            <form id="appointment-form" onsubmit="window.submitAppointment(event)" class="flex flex-col gap-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Department / Office</label>
+                                    <select id="apt-dept" required class="custom-select w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-accent focus:bg-white transition-all text-sm font-semibold text-gray-700">
+                                        <option value="">Select Office...</option>
+                                        <option value="Mayor's Office">Mayor's Office</option>
+                                        <option value="Civil Registry">Civil Registry</option>
+                                        <option value="Health Center">Health Center</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Date</label>
+                                        <input type="date" id="apt-date" required onchange="window.checkSeats()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-accent focus:bg-white transition-all cursor-pointer text-sm font-semibold text-gray-700">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Time</label>
+                                        <select id="apt-time" required onchange="window.checkSeats()" class="custom-select w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-accent focus:bg-white transition-all cursor-pointer text-sm font-semibold text-gray-700">
+                                            <option value="">Select...</option>
+                                            <option value="Morning (8AM - 12PM)">Morning (8AM - 12PM)</option>
+                                            <option value="Afternoon (1PM - 5PM)">Afternoon (1PM - 5PM)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div id="seat-container" class="hidden bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                                        <label class="block text-sm font-bold text-brand-primary">Select an Available Seat</label>
+                                        <div class="flex gap-3 text-[10px] font-bold text-gray-500 uppercase">
+                                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#166534]"></span> Available</span>
+                                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#b91c1c]"></span> Taken</span>
+                                        </div>
+                                    </div>
+                                    <div id="seat-grid" class="seat-grid"></div>
+                                    <input type="hidden" id="apt-seat" required>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Reason for Visit</label>
+                                    <textarea id="apt-reason" rows="3" required placeholder="E.g., Claiming my documents..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-accent focus:bg-white transition-all resize-none text-sm font-semibold text-gray-700"></textarea>
+                                </div>
+
+                                <p id="apt-msg" class="hidden p-3 rounded-xl text-sm font-semibold text-center"></p>
+                                
+                                <button type="submit" id="btn-book" class="w-full py-4 mt-2 bg-brand-accent text-white font-bold rounded-xl hover:bg-[#156e3e] active:scale-[0.98] shadow-md transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-regular fa-calendar-check"></i> Submit Booking
+                                </button>
+                            </form>
                         </div>
                     </div>
-                    
-                    <form id="appointment-form" onsubmit="window.submitAppointment(event)" class="flex flex-col gap-5">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Department / Office</label>
-                            <select id="apt-dept" required class="custom-select w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-brand-accent">
-                                <option value="">Select Office...</option>
-                                <option value="Mayor's Office">Mayor's Office</option>
-                                <option value="Civil Registry">Civil Registry</option>
-                                <option value="Health Center">Health Center</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Preferred Date</label>
-                                <input type="date" id="apt-date" required onchange="window.checkSeats()" class="bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 outline-none cursor-pointer">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Preferred Time</label>
-                                <select id="apt-time" required onchange="window.checkSeats()" class="custom-select w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 outline-none cursor-pointer">
-                                    <option value="">Select Time...</option>
-                                    <option value="Morning (8AM - 12PM)">Morning (8AM - 12PM)</option>
-                                    <option value="Afternoon (1PM - 5PM)">Afternoon (1PM - 5PM)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="seat-container" class="hidden bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="block text-sm font-bold text-brand-primary">Select a Slot / Seat</label>
-                                <div class="flex gap-3 text-[10px] font-bold text-gray-500 uppercase">
-                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#166534]"></span> Available</span>
-                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#b91c1c]"></span> Taken</span>
-                                </div>
-                            </div>
-                            <div id="seat-grid" class="seat-grid"></div>
-                            <input type="hidden" id="apt-seat" required>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Reason for Visit</label>
-                            <textarea id="apt-reason" rows="3" required placeholder="E.g., Claiming my civil registry documents..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-brand-accent resize-none"></textarea>
-                        </div>
-
-                        <p id="apt-msg" class="hidden p-3 rounded-xl text-sm font-semibold text-center"></p>
-                        
-                        <button type="submit" id="btn-book" class="w-full py-3.5 bg-brand-accent text-white font-bold rounded-xl hover:bg-[#156e3e] shadow-md transition-all flex items-center justify-center gap-2">
-                            <i class="fa-regular fa-calendar-check"></i> Submit Booking Request
-                        </button>
-                    </form>
                 </div>
 
-                <div class="w-full lg:w-1/2 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col min-h-[400px]">
+                <div class="w-full lg:w-[55%] bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col min-h-[500px]">
                     <div class="flex items-center gap-3 border-b border-gray-50 pb-5 mb-5">
                         <div class="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-list-ul text-lg"></i>
                         </div>
                         <div>
-                            <h2 class="text-xl font-bold text-brand-primary">My Appointments</h2>
-                            <p class="text-xs text-gray-500 font-medium">Track your schedule and status</p>
+                            <h2 class="text-xl font-bold text-brand-primary">My Schedule</h2>
+                            <p class="text-xs text-gray-500 font-medium">Track your upcoming appointments</p>
                         </div>
                     </div>
-                    <div id="appointments-list" class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 hide-scroll text-center text-gray-400 py-12">
-                        <div class="flex flex-col items-center justify-center h-full">
-                            <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-brand-primary/50"></i>
-                            <p class="font-medium text-sm">Loading your schedule...</p>
+                    
+                    <div id="appointments-list" class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 hide-scroll">
+                        <div class="flex flex-col items-center justify-center h-full text-brand-primary/40">
+                            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3"></i>
+                            <p class="font-medium text-sm">Loading your records...</p>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </main>
@@ -199,196 +214,213 @@
             document.getElementById('mobile-overlay').classList.toggle('opacity-0');
             document.getElementById('mobile-overlay').classList.toggle('pointer-events-none');
         }
-        // Set minimum date to TODAY
+        // Disable past dates
         document.getElementById('apt-date').min = new Date().toISOString().split('T')[0];
     </script>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+        import { getDatabase, ref, push, set, get, onValue, query, orderByChild, equalTo, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBsWGhsw7hHMOGu4QpLEOjNjKCjq_l2a0",
+            authDomain: "fir-ai-app-96845.firebaseapp.com",
+            databaseURL: "https://fir-ai-app-96845-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "fir-ai-app-96845",
+            storageBucket: "fir-ai-app-96845.firebasestorage.app",
+            messagingSenderId: "564401363339",
+            appId: "1:564401363339:web:f971caecec0f6f1af5778e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const dbFirestore = getFirestore(app);
+        const dbRealtime = getDatabase(app);
+
         let currentUserId = null;
         let currentUserName = "Citizen";
 
-        const checkFirebase = setInterval(async () => {
-            // HINIHINTAY NA MAG-LOAD ANG FB FUNCTIONS MULA SA APPOINTMENT.JS
-            if (window.fbAuth && window.fbFunctions && window.fbRtdb) {
-                clearInterval(checkFirebase);
+        // 1. INITIALIZE PAGE
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
                 
-                const { onAuthStateChanged, signOut, doc, getDoc, ref, push, set, get, onValue, query, orderByChild, equalTo, serverTimestamp } = window.fbFunctions;
-
-                // 1. INIT USER
-                onAuthStateChanged(window.fbAuth, async (user) => {
-                    if (user) {
-                        currentUserId = user.uid;
+                // Get Profile Data
+                try {
+                    const docSnap = await getDoc(doc(dbFirestore, "profile", user.uid));
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        currentUserName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
+                        let locationText = data.city || "Location Not Set";
                         
-                        try {
-                            const docSnap = await getDoc(doc(window.fbDb, "profile", user.uid));
-                            if (docSnap.exists()) {
-                                const data = docSnap.data();
-                                currentUserName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
-                                
-                                let locationText = data.city ? data.city : "Location Not Set";
-                                document.getElementById('desktop-sidebar-name').textContent = currentUserName;
-                                document.getElementById('mobile-sidebar-name').textContent = currentUserName;
-                                document.getElementById('desktop-sidebar-location').textContent = locationText;
-                                document.getElementById('mobile-sidebar-location').textContent = locationText;
+                        document.getElementById('desktop-sidebar-name').textContent = currentUserName;
+                        document.getElementById('mobile-sidebar-name').textContent = currentUserName;
+                        document.getElementById('desktop-sidebar-location').textContent = locationText;
+                        document.getElementById('mobile-sidebar-location').textContent = locationText;
 
-                                if (data.profile_image_url) {
-                                    document.getElementById('desktop-sidebar-pic').src = data.profile_image_url;
-                                    document.getElementById('mobile-sidebar-pic').src = data.profile_image_url;
-                                }
-                            }
-                        } catch (error) {}
-
-                        // 2. LISTEN TO APPOINTMENTS (REALTIME DB)
-                        const listContainer = document.getElementById('appointments-list');
-                        const aptQuery = query(ref(window.fbRtdb, "appointments"), orderByChild("userId"), equalTo(currentUserId));
-
-                        onValue(aptQuery, (snapshot) => {
-                            if(!snapshot.exists()) {
-                                listContainer.innerHTML = `
-                                    <div class="text-center py-12 flex flex-col items-center justify-center h-full">
-                                        <i class="fa-regular fa-calendar-xmark text-3xl text-gray-300 mb-3"></i>
-                                        <p class="font-bold text-gray-700">No appointments yet</p>
-                                    </div>`;
-                                return;
-                            }
-
-                            let apts = [];
-                            snapshot.forEach(childSnap => { apts.push(childSnap.val()); });
-                            apts.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                            listContainer.innerHTML = '';
-                            apts.forEach(apt => {
-                                const readableDate = new Date(apt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                                const statusClass = `status-${apt.status}`; 
-
-                                listContainer.innerHTML += `
-                                    <div class="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex justify-between items-center text-left hover:bg-white hover:shadow-md transition-all">
-                                        <div>
-                                            <h4 class="font-bold text-brand-primary text-sm">${apt.department}</h4>
-                                            <p class="text-xs text-gray-500 font-medium mt-1 flex gap-2 items-center flex-wrap">
-                                                <span><i class="fa-regular fa-calendar text-brand-accent"></i> ${readableDate}</span>
-                                                <span class="text-gray-300">|</span> 
-                                                <span><i class="fa-regular fa-clock text-brand-accent"></i> ${apt.time}</span>
-                                                <span class="text-gray-300">|</span> 
-                                                <span class="bg-brand-primary text-white px-2 py-0.5 rounded-md"><i class="fa-solid fa-chair text-[10px]"></i> Seat ${apt.seatNumber}</span>
-                                            </p>
-                                        </div>
-                                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${statusClass} uppercase tracking-wider">${apt.status}</span>
-                                    </div>
-                                `;
-                            });
-                        });
-                    } else { window.location.href = 'index.html'; }
-                });
-
-                // 3. CHECK SEATS LOGIC
-                window.checkSeats = async () => {
-                    const date = document.getElementById('apt-date').value;
-                    const time = document.getElementById('apt-time').value;
-                    const cont = document.getElementById('seat-container');
-                    const grid = document.getElementById('seat-grid');
-                    const seatInput = document.getElementById('apt-seat');
-                    const msgBox = document.getElementById('apt-msg');
-                    
-                    seatInput.value = '';
-                    msgBox.classList.add('hidden');
-
-                    if(!date || !time) { cont.classList.add('hidden'); return; }
-
-                    cont.classList.remove('hidden');
-                    grid.innerHTML = '<p class="col-span-4 text-center text-sm text-gray-500 py-4"><i class="fa-solid fa-circle-notch fa-spin"></i> Checking availability...</p>';
-
-                    try {
-                        const seatQuery = query(ref(window.fbRtdb, "appointments"), orderByChild("date"), equalTo(date));
-                        const snapshot = await get(seatQuery);
-                        const taken = [];
-                        
-                        if(snapshot.exists()) {
-                            snapshot.forEach(child => {
-                                const apt = child.val();
-                                if(apt.time === time && apt.seatNumber) {
-                                    taken.push(apt.seatNumber.toString());
-                                }
-                            });
+                        if (data.profile_image_url) {
+                            document.getElementById('desktop-sidebar-pic').src = data.profile_image_url;
+                            document.getElementById('mobile-sidebar-pic').src = data.profile_image_url;
                         }
-
-                        grid.innerHTML = '';
-                        for(let i = 1; i <= 12; i++) {
-                            const seatNum = i.toString();
-                            const isTaken = taken.includes(seatNum);
-                            const div = document.createElement('div');
-                            div.className = `seat ${isTaken ? 'taken' : 'available'}`;
-                            div.innerHTML = `<i class="fa-solid fa-chair"></i><span>${seatNum}</span>`;
-                            if(!isTaken) {
-                                div.onclick = () => {
-                                    document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
-                                    div.classList.add('selected');
-                                    seatInput.value = seatNum;
-                                };
-                            }
-                            grid.appendChild(div);
-                        }
-                    } catch(err) { 
-                        console.error(err);
-                        grid.innerHTML = '<p class="col-span-4 text-center text-sm text-red-500 py-4">Error loading seats. Please refresh.</p>'; 
                     }
-                };
+                } catch (error) { console.log("Profile error:", error); }
 
-                // 4. SUBMIT APPOINTMENT
-                window.submitAppointment = async (e) => {
-                    e.preventDefault();
-                    const seat = document.getElementById('apt-seat').value;
-                    const msg = document.getElementById('apt-msg');
+                // Load Appointments List
+                const listContainer = document.getElementById('appointments-list');
+                const aptQuery = query(ref(dbRealtime, "appointments"), orderByChild("userId"), equalTo(currentUserId));
 
-                    if(!seat) {
-                        msg.textContent = "Please select an available seat from the grid."; 
-                        msg.className = "p-3 rounded-xl text-sm font-semibold text-center bg-red-50 text-red-600 block mt-2"; 
-                        msg.classList.remove('hidden');
+                onValue(aptQuery, (snapshot) => {
+                    if(!snapshot.exists()) {
+                        listContainer.innerHTML = `
+                            <div class="flex flex-col items-center justify-center h-full text-center">
+                                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fa-regular fa-calendar-xmark text-3xl text-gray-300"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-700">No schedule found</h3>
+                                <p class="text-gray-400 text-sm mt-1">Book an appointment using the form.</p>
+                            </div>`;
                         return;
                     }
 
-                    const btn = document.getElementById('btn-book');
-                    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...'; 
-                    btn.disabled = true; 
-                    msg.classList.add('hidden');
+                    let apts = [];
+                    snapshot.forEach(child => { apts.push(child.val()); });
+                    apts.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                    try {
-                        const newAptRef = push(ref(window.fbRtdb, "appointments"));
-                        await set(newAptRef, {
-                            userId: currentUserId,
-                            userName: currentUserName,
-                            department: document.getElementById('apt-dept').value,
-                            date: document.getElementById('apt-date').value,
-                            time: document.getElementById('apt-time').value,
-                            seatNumber: seat,
-                            reason: document.getElementById('apt-reason').value,
-                            status: "Pending",
-                            createdAt: serverTimestamp()
-                        });
+                    listContainer.innerHTML = '';
+                    apts.forEach(apt => {
+                        const dateObj = new Date(apt.date);
+                        const readableDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const statusClass = `status-${apt.status}`; 
 
-                        msg.textContent = `Seat ${seat} booked successfully!`; 
-                        msg.className = "p-3 rounded-xl text-sm font-semibold text-center bg-green-50 text-brand-accent block mt-2";
-                        msg.classList.remove('hidden');
+                        listContainer.innerHTML += `
+                            <div class="p-5 rounded-2xl border border-gray-100 bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white hover:shadow-md transition-all group cursor-default">
+                                <div>
+                                    <h4 class="font-bold text-gray-900 text-base mb-1">${apt.department}</h4>
+                                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-500">
+                                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-calendar text-brand-primary"></i> ${readableDate}</span>
+                                        <span class="text-gray-300">|</span> 
+                                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-brand-primary"></i> ${apt.time}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-brand-primary text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
+                                        <i class="fa-solid fa-chair text-[10px]"></i><span class="font-bold text-xs">Seat ${apt.seatNumber}</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold px-3 py-1.5 rounded-full ${statusClass} uppercase tracking-wider">${apt.status}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+            } else { window.location.href = 'index.html'; }
+        });
 
-                        document.getElementById('appointment-form').reset();
-                        document.getElementById('seat-container').classList.add('hidden');
-                        document.getElementById('apt-seat').value = '';
-                        
-                        setTimeout(() => { msg.classList.add('hidden'); }, 4000);
-                        
-                    } catch (error) {
-                        msg.textContent = "Error booking appointment."; 
-                        msg.className = "p-3 rounded-xl text-sm font-semibold text-center bg-red-50 text-red-600 block mt-2";
-                        msg.classList.remove('hidden');
-                    } finally {
-                        btn.innerHTML = '<i class="fa-regular fa-calendar-check"></i> Submit Booking Request'; 
-                        btn.disabled = false;
+        // 2. CHECK SEATS (Global Function)
+        window.checkSeats = async () => {
+            const date = document.getElementById('apt-date').value;
+            const time = document.getElementById('apt-time').value;
+            const cont = document.getElementById('seat-container');
+            const grid = document.getElementById('seat-grid');
+            const seatInput = document.getElementById('apt-seat');
+            
+            seatInput.value = '';
+            if(!date || !time) { cont.classList.add('hidden'); return; }
+
+            cont.classList.remove('hidden');
+            grid.innerHTML = '<p class="col-span-4 text-center text-sm font-semibold text-gray-400 py-6"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Scanning seats...</p>';
+
+            try {
+                const seatQuery = query(ref(dbRealtime, "appointments"), orderByChild("date"), equalTo(date));
+                const snapshot = await get(seatQuery);
+                const taken = [];
+                
+                if(snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const apt = child.val();
+                        if(apt.time === time && apt.seatNumber) {
+                            taken.push(apt.seatNumber.toString());
+                        }
+                    });
+                }
+
+                grid.innerHTML = '';
+                for(let i = 1; i <= 12; i++) {
+                    const seatNum = i.toString();
+                    const isTaken = taken.includes(seatNum);
+                    const div = document.createElement('div');
+                    div.className = `seat ${isTaken ? 'taken' : 'available'}`;
+                    div.innerHTML = `<i class="fa-solid fa-chair"></i><span>${seatNum}</span>`;
+                    
+                    if(!isTaken) {
+                        div.onclick = () => {
+                            document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+                            div.classList.add('selected');
+                            seatInput.value = seatNum;
+                        };
                     }
-                };
-
-                window.handleLogout = () => signOut(window.fbAuth).then(() => window.location.href = 'index.html');
+                    grid.appendChild(div);
+                }
+            } catch(err) { 
+                console.error(err);
+                grid.innerHTML = '<p class="col-span-4 text-center text-sm font-bold text-red-500 py-4">Database index error. Check Firebase Rules.</p>'; 
             }
-        }, 50);
+        };
+
+        // 3. SUBMIT BOOKING (Global Function)
+        window.submitAppointment = async (e) => {
+            e.preventDefault();
+            const seat = document.getElementById('apt-seat').value;
+            const msg = document.getElementById('apt-msg');
+            const btn = document.getElementById('btn-book');
+
+            if(!seat) {
+                msg.textContent = "Please pick a green seat before submitting."; 
+                msg.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-500 block mt-2"; 
+                msg.classList.remove('hidden');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...'; 
+            btn.disabled = true; 
+            msg.classList.add('hidden');
+
+            try {
+                const newAptRef = push(ref(dbRealtime, "appointments"));
+                await set(newAptRef, {
+                    userId: currentUserId,
+                    userName: currentUserName,
+                    department: document.getElementById('apt-dept').value,
+                    date: document.getElementById('apt-date').value,
+                    time: document.getElementById('apt-time').value,
+                    seatNumber: seat,
+                    reason: document.getElementById('apt-reason').value,
+                    status: "Pending",
+                    createdAt: serverTimestamp()
+                });
+
+                msg.textContent = `Success! Seat ${seat} is reserved for you.`; 
+                msg.className = "p-3 rounded-xl text-sm font-bold text-center bg-green-50 text-brand-accent block mt-2";
+                msg.classList.remove('hidden');
+
+                document.getElementById('appointment-form').reset();
+                document.getElementById('seat-container').classList.add('hidden');
+                document.getElementById('apt-seat').value = '';
+                
+                setTimeout(() => { msg.classList.add('hidden'); }, 4000);
+                
+            } catch (error) {
+                msg.textContent = "Submission failed. Check connection."; 
+                msg.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-500 block mt-2";
+                msg.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = '<i class="fa-regular fa-calendar-check"></i> Submit Booking'; 
+                btn.disabled = false;
+            }
+        };
+
+        window.handleLogout = () => signOut(auth).then(() => window.location.href = 'index.html');
     </script>
 </body>
 </html>
