@@ -342,24 +342,29 @@
         }
     </script>
 
-    <script type="module">
+   <script type="module">
         const checkFirebase = setInterval(async () => {
-            if (window.fbAuth && window.fbFunctions) {
+            // Hintayin mag-load pareho ang Firestore at Realtime DB
+            if (window.fbAuth && window.fbFunctions && window.fbDb && window.fbRtdb) {
                 clearInterval(checkFirebase);
                 
-                // Fetch the exported RTDB functions from fbFunctions
-                const { onAuthStateChanged, signOut, ref, get, child, onValue, query, orderByChild } = window.fbFunctions;
+                const { 
+                    onAuthStateChanged, signOut, 
+                    doc, getDoc, // FIRESTORE functions
+                    ref, onValue, query, orderByChild // REALTIME DB functions
+                } = window.fbFunctions;
 
-                // 1. Authenticate User & Load Profile
                 onAuthStateChanged(window.fbAuth, async (user) => {
                     if (user) {
                         try {
-                            // REALTIME DATABASE: Fetch Profile Data
-                            const dbRef = ref(window.fbDb);
-                            const snapshot = await get(child(dbRef, `profile/${user.uid}`));
+                            // ================================================== //
+                            // 1. KUNIN ANG USER PROFILE MULA SA FIRESTORE
+                            // ================================================== //
+                            const docRef = doc(window.fbDb, "profile", user.uid);
+                            const docSnap = await getDoc(docRef);
 
-                            if (snapshot.exists()) {
-                                const data = snapshot.val();
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
                                 
                                 const firstName = data.first_name || "Citizen";
                                 const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
@@ -384,13 +389,13 @@
                                 }
 
                                 // ================================================== //
-                                // 2. REALTIME EC FEED LOGIC (RTDB Version)
+                                // 2. REALTIME EC FEED LOGIC (MULA SA REALTIME DB)
                                 // ================================================== //
                                 const feedStream = document.getElementById('ec-feed-stream');
 
                                 if (onValue && query && orderByChild) {
-                                    // Query the "admin_announcements" node, ordered by "createdAt"
-                                    const feedQuery = query(ref(window.fbDb, "admin_announcements"), orderByChild("createdAt"));
+                                    // Gumamit ng window.fbRtdb para sa Realtime Database
+                                    const feedQuery = query(ref(window.fbRtdb, "admin_announcements"), orderByChild("createdAt"));
                                     
                                     onValue(feedQuery, (snapshot) => {
                                         feedStream.innerHTML = ''; 
@@ -400,7 +405,7 @@
                                             return;
                                         }
                                         
-                                        // RTDB orderByChild is ascending. To get newest first, we push to array and reverse.
+                                        // Kunin ang data at i-reverse para pinakabago ang mauna
                                         const posts = [];
                                         snapshot.forEach((childSnapshot) => {
                                             posts.push(childSnapshot.val());
@@ -409,7 +414,6 @@
 
                                         posts.forEach((post) => {
                                             let timeString = 'Just now';
-                                            // In RTDB, serverTimestamp is saved as milliseconds (number)
                                             if (post.createdAt) {
                                                 const date = new Date(post.createdAt);
                                                 timeString = date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -434,11 +438,11 @@
                                         });
                                     });
                                 } else {
-                                    feedStream.innerHTML = '<div class="text-center text-red-500 py-4">RTDB connection functions not found. Ensure onValue, query, and orderByChild are exported from home.js</div>';
+                                    feedStream.innerHTML = '<div class="text-center text-red-500 py-4">RTDB connection error.</div>';
                                 }
 
                             } else {
-                                console.log("User profile data not found in Realtime DB.");
+                                console.log("User profile data not found in Firestore.");
                             }
                         } catch (error) {
                             console.error("Error retrieving user data:", error);
