@@ -1,9 +1,12 @@
-// appointments.js
+// appointment.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-// FIRESTORE - Idinagdag natin ang getDocs dito
-import { getFirestore, doc, getDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+// FIRESTORE (Para lang sa Profile Sidebar)
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+// REALTIME DATABASE (Para sa Appointments & Seats)
+import { getDatabase, ref, push, set, get, onValue, query, orderByChild, equalTo, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBBsWGhsw7hHMOGu4QpLEOjNjKCjq_l2a0",
@@ -18,23 +21,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const firestoreDb = getFirestore(app);
+const realtimeDb = getDatabase(app);
 
 window.fbAuth = auth;
-window.fbDb = firestoreDb;       
+window.fbDb = firestoreDb;       // Firestore
+window.fbRtdb = realtimeDb;      // Realtime Database
 
 window.fbFunctions = {
-    onAuthStateChanged,
-    signOut,
-    doc,
-    getDoc,
-    collection,
-    addDoc,
-    query,
-    where,
-    orderBy,
-    onSnapshot,
-    serverTimestamp,
-    getDocs // I-export para magamit sa HTML natin pang-check ng upuan
+    onAuthStateChanged, signOut, 
+    doc, getDoc, // Firestore Profile
+    ref, push, set, get, onValue, query, orderByChild, equalTo, serverTimestamp // Realtime DB Appointments
 };
 
-console.log("Firebase initialized for Appointments Page with Seat Checker!");
+console.log("Firebase initialized for Appointments Page (Realtime Database mode)!");
