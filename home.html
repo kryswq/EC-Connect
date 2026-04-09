@@ -342,9 +342,8 @@
         }
     </script>
 
-   <script type="module">
+  <script type="module">
         const checkFirebase = setInterval(async () => {
-            // Tinitiyak na loaded na ang parehong fbDb (Firestore) at fbRtdb (Realtime DB)
             if (window.fbAuth && window.fbFunctions && window.fbDb && window.fbRtdb) {
                 clearInterval(checkFirebase);
                 
@@ -353,7 +352,7 @@
                 onAuthStateChanged(window.fbAuth, async (user) => {
                     if (user) {
                         
-                        // 1. KUNIN ANG PROFILE (Gamit ang window.fbDb / FIRESTORE)
+                        // 1. KUNIN ANG PROFILE
                         try {
                             const docRef = doc(window.fbDb, "profile", user.uid);
                             const docSnap = await getDoc(docRef);
@@ -362,7 +361,7 @@
                                 const data = docSnap.data();
                                 const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
                                 
-                                // Welcome text (Kung meron)
+                                // Welcome text
                                 const welcomeName = document.getElementById('welcome-name');
                                 if (welcomeName) welcomeName.textContent = data.first_name || "Citizen";
 
@@ -372,8 +371,12 @@
                                 if(dName) dName.textContent = fullName;
                                 if(mName) mName.textContent = fullName;
 
-                                // Setup Sidebar Location
-                                let locationText = data.city || "Location Not Set";
+                                // ==========================================
+                                // FIX: KUMPLETONG LOCATION (Brgy, City, Prov)
+                                // ==========================================
+                                const addressParts = [data.barangay, data.city, data.province].filter(Boolean);
+                                let locationText = addressParts.length > 0 ? addressParts.join(', ') : "Location Not Set";
+                                
                                 const dLoc = document.getElementById('desktop-sidebar-location');
                                 const mLoc = document.getElementById('mobile-sidebar-location');
                                 if(dLoc) dLoc.textContent = locationText;
@@ -390,12 +393,11 @@
                             console.error("Profile Fetch Error:", error);
                         }
 
-                        // 2. KUNIN ANG EC FEED (Gamit ang window.fbRtdb / REALTIME DB)
+                        // 2. KUNIN ANG EC FEED
                         const feedStream = document.getElementById('ec-feed-stream');
                         
                         if (feedStream) {
                             try {
-                                // Siguraduhing window.fbRtdb ang gamit sa ref()
                                 const feedQuery = query(ref(window.fbRtdb, "admin_announcements"), orderByChild("createdAt"));
                                 
                                 onValue(feedQuery, (snapshot) => {
