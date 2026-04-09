@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC Feed | EC Connect</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-theme.js"></script> 
+    
+    <script type="module" src="feed.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #E0F2FE; margin: 0; }
+
+        /* SCROLLBARS */
+        .hide-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* SIDEBAR HOVER ANIMATION (Desktop) */
+        #desktop-sidebar {
+            width: 5.5rem; transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease;
+            overflow-x: hidden; white-space: nowrap;
+        }
+        #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
+        #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
+        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); transition-delay: 0.1s; pointer-events: auto; }
+        #mobile-sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        #mobile-overlay { transition: opacity 0.3s ease; }
+
+        /* FADE ANIMATIONS */
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-enter { animation: slideDownFade 0.6s ease forwards; }
+        .animate-enter-delay { animation: slideDownFade 0.6s ease 0.15s forwards; opacity: 0; }
+    </style>
+</head>
+<body class="h-screen flex text-gray-800 selection:bg-brand-accent selection:text-white">
+
+    <div id="mobile-overlay" class="fixed inset-0 bg-brand-primary/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
+    
+    <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl transition-transform">
+        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+        
+        <div class="flex items-center px-6 mb-8 shrink-0">
+            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="EC Logo" class="w-full h-full object-contain">
+            </div>
+            <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
+        </div>
+        
+        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium text-[15px]">Dashboard</span>
+            </a>
+            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary transition-colors">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center text-brand-primary"></i><span class="ml-4 font-semibold text-[15px]">CivicFeed</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="ml-4 font-medium text-[15px]">Appointments</span>
+            </a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium text-[15px]">Settings</span>
+            </a>
+        </nav>
+        
+        <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            <a href="profile.html" class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full hover:bg-gray-100 transition-colors cursor-pointer">
+                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] rounded-br-none py-6 border-r border-gray-100 shadow-sm">
+        
+        <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
+            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="EC Logo" class="w-full h-full object-contain">
+            </div>
+            <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight cursor-default">EC<span class="text-brand-secondary">Connect</span></span>
+        </div>
+        
+        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium text-[15px]">Dashboard</span>
+            </a>
+            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary transition-colors">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-semibold text-[15px]">CivicFeed</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium text-[15px]">Appointments</span>
+            </a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium text-[15px]">Settings</span>
+            </a>
+        </nav>
+        
+        <div class="mt-auto px-3 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            <a href="profile.html" class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full hover:bg-gray-100 transition-colors cursor-pointer">
+                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=Citizen&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 lg:ml-[5.5rem] flex flex-col relative min-w-0 w-full h-screen">
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#E0F2FE]/80 backdrop-blur-md z-30 sticky top-0 border-b border-white/40">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-brand-primary hover:bg-white hover:shadow-sm rounded-full transition-all focus:outline-none -ml-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="text-sm font-medium text-gray-500">Portal / <span class="text-brand-primary font-semibold">CivicFeed</span></div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 md:px-8 pb-20 pt-6">
+            <div class="max-w-4xl mx-auto">
+                
+                <div class="bg-gradient-to-r from-brand-primary to-[#0f3b68] rounded-3xl p-8 shadow-md text-white mb-8 animate-enter opacity-0 relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 16px 16px;"></div>
+                    <div class="relative z-10 flex items-center gap-4">
+                        <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shrink-0">
+                            <i class="fa-regular fa-newspaper text-2xl text-brand-secondary"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold mb-1">CivicFeed Announcements</h1>
+                            <p class="text-white/80 text-sm md:text-base">Stay updated with the latest news, alerts, and programs from your local government.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="full-ec-feed-stream" class="flex flex-col gap-6 animate-enter-delay">
+                    <div class="text-center text-brand-primary/60 py-12 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                        <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3"></i>
+                        <p class="font-medium">Loading local updates...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            if(overlay.classList.contains('pointer-events-none')) {
+                overlay.classList.remove('pointer-events-none', 'opacity-0');
+            } else {
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('pointer-events-none'), 300);
+            }
+        }
+    </script>
+
+    <script type="module">
+        const checkFirebase = setInterval(async () => {
+            if (window.fbAuth && window.fbFunctions && window.fbDb && window.fbRtdb) {
+                clearInterval(checkFirebase);
+                
+                const { 
+                    onAuthStateChanged, signOut, 
+                    doc, getDoc, 
+                    ref, onValue, query, orderByChild 
+                } = window.fbFunctions;
+
+                // 1. INITIALIZE USER & SIDEBAR
+                onAuthStateChanged(window.fbAuth, async (user) => {
+                    if (user) {
+                        try {
+                            const docRef = doc(window.fbDb, "profile", user.uid);
+                            const docSnap = await getDoc(docRef);
+
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
+                                const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Citizen";
+
+                                let locationText = "Location Not Set";
+                                if(data.barangay && data.city && data.province) {
+                                    locationText = `${data.barangay}, ${data.city}, ${data.province}`;
+                                } else if(data.city) {
+                                    locationText = data.city;
+                                }
+
+                                document.getElementById('desktop-sidebar-name').textContent = fullName;
+                                document.getElementById('mobile-sidebar-name').textContent = fullName;
+                                document.getElementById('desktop-sidebar-location').textContent = locationText;
+                                document.getElementById('mobile-sidebar-location').textContent = locationText;
+
+                                const currentImageUrl = data.profile_image_url || data.id_image_url;
+                                if (currentImageUrl) {
+                                    document.getElementById('desktop-sidebar-pic').src = currentImageUrl;
+                                    document.getElementById('mobile-sidebar-pic').src = currentImageUrl;
+                                }
+
+                                // 2. LOAD EC FEED FROM REALTIME DB
+                                const feedStream = document.getElementById('full-ec-feed-stream');
+
+                                if (onValue && query && orderByChild) {
+                                    const feedQuery = query(ref(window.fbRtdb, "admin_announcements"), orderByChild("createdAt"));
+                                    
+                                    onValue(feedQuery, (snapshot) => {
+                                        feedStream.innerHTML = ''; 
+                                        
+                                        if(!snapshot.exists()) {
+                                            feedStream.innerHTML = `
+                                                <div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center">
+                                                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                                        <i class="fa-solid fa-inbox text-3xl text-gray-300"></i>
+                                                    </div>
+                                                    <h3 class="text-lg font-bold text-gray-700">No announcements yet</h3>
+                                                    <p class="text-gray-500 text-sm mt-1">Check back later for updates from your local admin.</p>
+                                                </div>
+                                            `;
+                                            return;
+                                        }
+                                        
+                                        const posts = [];
+                                        snapshot.forEach((childSnapshot) => {
+                                            posts.push(childSnapshot.val());
+                                        });
+                                        posts.reverse(); // Newest first
+
+                                        posts.forEach((post) => {
+                                            let timeString = 'Just now';
+                                            if (post.createdAt) {
+                                                const date = new Date(post.createdAt);
+                                                timeString = date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                            }
+                                            
+                                            const postHTML = `
+                                                <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                                                    <div class="flex items-center gap-4 mb-4">
+                                                        <div class="w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20">
+                                                            <i class="fa-solid fa-bullhorn text-lg"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h4 class="font-bold text-brand-primary text-base">${post.adminName || 'Barangay Admin'}</h4>
+                                                            <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">${timeString}</span>
+                                                        </div>
+                                                    </div>
+                                                    ${post.title ? `<h5 class="text-xl font-bold text-gray-900 mb-2">${post.title}</h5>` : ''}
+                                                    <p class="text-gray-700 text-[15px] md:text-base leading-relaxed whitespace-pre-line">${post.content}</p>
+                                                </div>
+                                            `;
+                                            feedStream.insertAdjacentHTML('beforeend', postHTML);
+                                        });
+                                    });
+                                }
+
+                            }
+                        } catch (error) {
+                            console.error("Error fetching data:", error);
+                        }
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                });
+
+                // LOGOUT
+                window.handleLogout = async function() {
+                    try {
+                        await signOut(window.fbAuth);
+                        window.location.href = 'index.html';
+                    } catch (error) { alert("Error logging out."); }
+                };
+            }
+        }, 50);
+    </script>
+</body>
+</html>
