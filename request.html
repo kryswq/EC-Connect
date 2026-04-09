@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Document | EC Connect</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-theme.js"></script> 
+    
+    <script type="module" src="request.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #E0F2FE; margin: 0; }
+        .hide-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        #desktop-sidebar { width: 5.5rem; transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease; overflow-x: hidden; white-space: nowrap; }
+        #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
+        #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
+        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        #mobile-sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        #mobile-overlay { transition: opacity 0.3s ease; }
+
+        /* Request Status Badges */
+        .status-Pending { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .status-UnderReview { background-color: #eff6ff; color: #0369a1; border: 1px solid #bae6fd; }
+        .status-ReadyforPickup { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        
+        .custom-select {
+            appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2315518D' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 8l5 5 5-5'/%3e%3c/svg%3e");
+            background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em;
+        }
+    </style>
+</head>
+<body class="h-screen flex text-gray-800 selection:bg-brand-accent selection:text-white">
+
+    <div id="mobile-overlay" class="fixed inset-0 bg-brand-primary/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
+    
+    <div id="preview-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-magnifying-glass mr-2 text-brand-primary"></i>Review Request</h3>
+                <button onclick="window.closePreview()" class="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto hide-scroll flex-1 flex flex-col gap-4">
+                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                    <p class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Requestor Details</p>
+                    <p class="text-sm font-semibold text-gray-900" id="prev-name">Loading...</p>
+                    <p class="text-sm text-gray-600 mt-1"><i class="fa-solid fa-phone mr-1.5 text-gray-400"></i><span id="prev-number">Loading...</span></p>
+                    <p class="text-sm text-gray-600 mt-1"><i class="fa-solid fa-house mr-1.5 text-gray-400"></i><span id="prev-address">Loading...</span></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Document</p>
+                        <p class="text-sm font-bold text-brand-primary bg-brand-primary/5 p-3 rounded-xl border border-brand-primary/10" id="prev-doctype"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Purpose</p>
+                        <p class="text-sm font-medium text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="prev-purpose"></p>
+                    </div>
+                </div>
+
+                <div id="prev-img-section" class="hidden">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Valid ID</p>
+                    <div id="prev-images" class="flex gap-2 overflow-x-auto pb-2 hide-scroll"></div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-100 bg-white grid grid-cols-2 gap-3">
+                <button onclick="window.closePreview()" class="py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Edit</button>
+                <button onclick="window.confirmRequestSubmit()" id="btn-confirm-submit" class="py-3 rounded-xl font-bold text-white bg-brand-accent hover:bg-[#156e3e] shadow-md transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Confirm Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="details-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-list-check mr-2 text-brand-primary"></i>Request Progress</h3>
+                <button onclick="window.closeDetails()" class="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto hide-scroll flex-1 flex flex-col gap-5">
+                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Status</span>
+                    <span id="det-status" class="text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Loading...</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Document</p>
+                        <p class="text-sm font-bold text-gray-800 bg-white p-3 rounded-xl border border-gray-200" id="det-doctype"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Purpose</p>
+                        <p class="text-sm font-medium text-gray-800 bg-white p-3 rounded-xl border border-gray-200" id="det-purpose"></p>
+                    </div>
+                </div>
+
+                <div id="det-img-section" class="hidden">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Valid ID</p>
+                    <div id="det-images" class="flex gap-3 overflow-x-auto pb-2 hide-scroll"></div>
+                </div>
+            </div>
+
+            <div class="p-5 border-t border-gray-100 bg-white">
+                <button onclick="window.closeDetails()" class="w-full py-3.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl transition-transform">
+        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+        <div class="flex items-center px-6 mb-8 shrink-0">
+            <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-10 h-10 object-contain">
+            <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
+        </div>
+        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
+          
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium">Home</span></a>
+            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium">EC Feed</span></a>
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="ml-4 font-medium">Appointments</span></a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Profile</span></a>
+        </nav>
+        <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="index.html" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium">Log Out</span></a>
+            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
+                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] py-6 border-r border-gray-100 shadow-sm">
+        <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
+            <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-10 h-10 object-contain">
+            <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight">EC<span class="text-brand-secondary">Connect</span></span>
+        </div>
+        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
+          
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Dashboard</span></a>
+            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">CivicFeed</span></a>
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Appointments</span></a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
+                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Profile</span></a>
+        </nav>
+        <div class="mt-auto px-3 pt-4">
+            <a href="#" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Log Out</span></a>
+            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
+                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 lg:ml-[5.5rem] flex flex-col min-w-0 w-full h-screen">
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between bg-[#E0F2FE]/80 backdrop-blur-md sticky top-0 border-b border-white/40 z-30">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleMobileSidebar()" class="lg:hidden text-brand-primary"><i class="fa-solid fa-bars text-xl"></i></button>
+                
+                <a href="home.html" class="flex items-center justify-center w-8 h-8 rounded-full bg-white/50 text-brand-primary hover:bg-white hover:shadow-sm transition-all border border-gray-200">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+
+                <div class="text-sm font-medium text-gray-500">Citizen Connect / <span class="text-brand-primary font-semibold">Request Document</span></div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 md:px-8 pb-20 pt-6">
+            <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6 md:gap-8">
+                
+                <div class="w-full lg:w-[45%] flex flex-col gap-6">
+                    <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+                        
+                        <div class="flex items-center gap-3 border-b border-gray-50 pb-5 mb-5">
+                            <div class="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-file-signature text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">Request Document</h2>
+                                <p class="text-xs text-gray-500 font-medium">Apply for clearance, certificates, and more.</p>
+                            </div>
+                        </div>
+                        
+                        <form id="request-form" class="flex flex-col gap-5">
+                            
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Document Type</label>
+                                <select id="req-type" required class="custom-select w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-accent focus:bg-white transition-all text-sm font-semibold text-gray-700">
+                                    <option value="">Select Document...</option>
+                                    <option value="Barangay Clearance">Barangay Clearance</option>
+                                    <option value="Certificate of Indigency">Certificate of Indigency</option>
+                                    <option value="Certificate of Residency">Certificate of Residency</option>
+                                    <option value="Business Permit">Business Permit</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Purpose of Request</label>
+                                <textarea id="req-purpose" rows="2" required placeholder="E.g., For Local Employment, School Requirement..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-accent focus:bg-white transition-all resize-none text-sm font-semibold text-gray-700"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Upload Valid ID (Max 2)</label>
+                                <div class="relative w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl px-4 py-6 text-center cursor-pointer hover:border-brand-primary hover:bg-brand-primary/5 transition-all group">
+                                    <i class="fa-solid fa-id-card text-3xl text-gray-300 group-hover:text-brand-primary mb-2 transition-colors"></i>
+                                    <p class="text-xs text-gray-500 font-medium group-hover:text-brand-primary">Tap to attach ID for verification</p>
+                                    <input type="file" id="req-id-images" multiple accept="image/png, image/jpeg, image/jpg" onchange="window.handleIdSelect()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                </div>
+                                <div id="id-preview-container" class="grid grid-cols-2 gap-2 mt-3 hidden"></div>
+                            </div>
+
+                            <p id="request-msg" class="hidden p-3 rounded-xl text-sm font-semibold text-center"></p>
+                            
+                            <button type="submit" id="btn-submit-request" class="w-full py-4 mt-2 bg-brand-primary text-white font-bold rounded-xl hover:bg-[#0f3b68] active:scale-[0.98] shadow-md transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-eye"></i> Review & Submit
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-[55%] bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col min-h-[500px]">
+                    <div class="flex items-center gap-3 border-b border-gray-50 pb-5 mb-5">
+                        <div class="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-file-import text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-brand-primary">My Requests</h2>
+                            <p class="text-xs text-gray-500 font-medium">Click a request to track its progress</p>
+                        </div>
+                    </div>
+                    
+                    <div id="requests-list" class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 hide-scroll">
+                        <div class="flex flex-col items-center justify-center h-full text-brand-primary/40">
+                            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3"></i>
+                            <p class="font-medium text-sm">Loading your requests...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleMobileSidebar() {
+            document.getElementById('mobile-sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.toggle('opacity-0');
+            document.getElementById('mobile-overlay').classList.toggle('pointer-events-none');
+        }
+    </script>
+</body>
+</html>
