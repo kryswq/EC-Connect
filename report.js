@@ -20,6 +20,7 @@ const auth = getAuth(app);
 const dbFirestore = getFirestore(app);
 const dbRealtime = getDatabase(app);
 
+// I-attach sa window para magamit sa HTML
 window.fbAuth = auth;
 window.fbDb = dbFirestore;
 window.fbRtdb = dbRealtime;
@@ -262,20 +263,21 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
         return;
     }
 
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting Report...';
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading and Submitting...';
     btn.disabled = true;
     msgBox.classList.add('hidden');
 
     try {
         // 1. Fetch Contact and Address in the background
-        let usermobile = "Not provided";
+        let userMobile = "Not provided";
         let userAddress = "Location Not Set";
         
         const docRef = doc(dbFirestore, "profile", currentUserId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
-            userContact = data.mobile_number || data.phone || "Not provided";
+            // FIX: Tama na yung variable na inu-update natin at hinahanap natin ang `data.mobile`
+            userMobile = data.mobile || data.mobile_number || "Not provided";
             const addressParts = [data.barangay, data.city, data.province].filter(Boolean);
             if (addressParts.length > 0) userAddress = addressParts.join(', ');
         }
@@ -310,8 +312,8 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
         await set(newReportRef, {
             userId: currentUserId,
             userName: currentUserName,
-            userContact: usermobile,       // Na-save na
-            userAddress: userAddress,       // Na-save na
+            userContact: userMobile,        // Na-fix na! Papasok na yung number
+            userAddress: userAddress,       
             description: description,
             latitude: parseFloat(lat),
             longitude: parseFloat(long),
