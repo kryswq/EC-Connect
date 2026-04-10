@@ -78,13 +78,16 @@ window.pingEmergencyLocation = function() {
                 const data = await response.json();
                 
                 const detectedCity = data.address.city || data.address.town || data.address.municipality || data.address.village || "Unknown Area";
-                const barangayName = data.address.suburb || data.address.neighbourhood || data.address.hamlet || "";
+                // FIX: Check multiple common keys for barangay in OSM data
+                const barangayName = data.address.village || data.address.quarter || data.address.suburb || data.address.neighbourhood || data.address.hamlet || "";
                 
                 // Display simple location
-                if(barangayName) {
+                if(barangayName && detectedCity !== "Unknown Area") {
                     yourLocationText.textContent = `${barangayName}, ${detectedCity}`;
-                } else {
+                } else if (detectedCity !== "Unknown Area") {
                     yourLocationText.textContent = detectedCity;
+                } else {
+                     yourLocationText.textContent = "Location Unknown";
                 }
 
                 if (detectedCity && detectedCity !== "Unknown Area") {
