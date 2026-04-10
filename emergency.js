@@ -42,7 +42,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) { console.error(e); }
             
-            // Trigger Emergency Ping automatically
             window.pingEmergencyLocation();
         } else {
             window.location.href = 'index.html';
@@ -53,18 +52,17 @@ window.addEventListener('DOMContentLoaded', () => {
 window.pingEmergencyLocation = function() {
     const locStatus = document.getElementById('location-status');
     const locCoords = document.getElementById('location-coords');
-    const streetLabel = document.getElementById('det-street');
-    const barangayLabel = document.getElementById('det-barangay');
-    const cityLabel = document.getElementById('det-city');
-    const provinceLabel = document.getElementById('det-province');
+    const yourLocationText = document.getElementById('your-location-text');
     const hotlinesContainer = document.getElementById('hotlines-container');
 
-    locStatus.innerHTML = '<i class="fa-solid fa-satellite-dish fa-beat text-gray-900"></i> Searching for GPS signal...';
+    locStatus.innerHTML = '<i class="fa-solid fa-satellite-dish fa-beat text-brand-primary mr-1.5"></i> Searching for GPS signal...';
     locCoords.textContent = "Detecting coordinates...";
+    yourLocationText.textContent = "Detecting...";
+    
     hotlinesContainer.innerHTML = `
         <div class="flex flex-col items-center justify-center h-full py-10 text-brand-primary/40">
-            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3"></i>
-            <p class="font-medium text-sm text-gray-900">Locating nearby hotlines...</p>
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3 text-brand-primary"></i>
+            <p class="font-medium text-sm text-brand-primary">Locating nearby hotlines...</p>
         </div>`;
 
     if (navigator.geolocation) {
@@ -75,47 +73,48 @@ window.pingEmergencyLocation = function() {
             locCoords.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
             
             try {
-                locStatus.innerHTML = '<i class="fa-solid fa-map-location-dot text-gray-900"></i> Reverse geocoding location...';
+                locStatus.innerHTML = '<i class="fa-solid fa-map-location-dot text-brand-primary mr-1.5"></i> Reverse geocoding location...';
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
                 const data = await response.json();
                 
-                // Detailed Geocoding for Exact Location
-                const streetName = data.address.road || data.address.pedestrian || data.address.suburb || "Street Unknown";
-                const barangayName = data.address.suburb || data.address.neighbourhood || data.address.hamlet || "Barangay Unknown";
-                const detectedCity = data.address.city || data.address.town || data.address.municipality || data.address.village || "City/Municipality Unknown";
-                const provinceName = data.address.province || data.address.county || data.address.state || "Province Unknown";
+                const detectedCity = data.address.city || data.address.town || data.address.municipality || data.address.village || "Unknown Area";
+                const barangayName = data.address.suburb || data.address.neighbourhood || data.address.hamlet || "";
                 
-                streetLabel.textContent = streetName;
-                barangayLabel.textContent = barangayName;
-                cityLabel.textContent = detectedCity;
-                provinceLabel.textContent = provinceName;
+                // Display simple location
+                if(barangayName) {
+                    yourLocationText.textContent = `${barangayName}, ${detectedCity}`;
+                } else {
+                    yourLocationText.textContent = detectedCity;
+                }
 
-                if (detectedCity) {
-                    locStatus.innerHTML = `<i class="fa-solid fa-location-dot text-gray-900"></i> You are in <span class="font-bold text-gray-900">${detectedCity}</span>`;
-                    // Fetch the Hotlines from JSON
+                if (detectedCity && detectedCity !== "Unknown Area") {
+                    locStatus.innerHTML = `<i class="fa-solid fa-location-dot text-brand-accent mr-1.5"></i> Location verified.`;
                     fetchHotlines(detectedCity.toLowerCase());
                 } else {
-                    locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-gray-900"></i> Area detected, but city name is unknown.';
+                    locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1.5"></i> Area detected, but city name is unknown.';
                     fetchHotlines("unknown");
                 }
             } catch (error) {
                 console.error("Geocoding error:", error);
-                locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-gray-900"></i> Error analyzing location.';
-                hotlinesContainer.innerHTML = '<p class="text-gray-900 font-medium text-center">Could not load hotlines due to network error.</p>';
+                locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1.5"></i> Error analyzing location.';
+                yourLocationText.textContent = "Error";
+                hotlinesContainer.innerHTML = '<p class="text-red-500 font-medium text-center">Could not load hotlines due to network error.</p>';
             }
 
         }, (error) => {
-            locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-gray-900"></i> GPS Signal Failed';
+            locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500 mr-1.5"></i> GPS Signal Failed';
             locCoords.textContent = error.message;
+            yourLocationText.textContent = "Access Denied";
             hotlinesContainer.innerHTML = `
                 <div class="text-center py-10">
-                    <i class="fa-solid fa-location-crosshairs text-4xl text-gray-900 mb-3"></i>
+                    <i class="fa-solid fa-location-crosshairs text-4xl text-red-500 mb-3"></i>
                     <h3 class="text-lg font-bold text-gray-700">Location Access Denied</h3>
-                    <p class="text-gray-900 text-sm mt-1">Please enable GPS/Location permissions to see emergency numbers.</p>
+                    <p class="text-gray-500 text-sm mt-1">Please enable GPS/Location permissions to see emergency numbers.</p>
                 </div>`;
         }, { enableHighAccuracy: true });
     } else {
         locStatus.textContent = "Geolocation is not supported.";
+        yourLocationText.textContent = "Unsupported";
     }
 };
 
@@ -130,7 +129,6 @@ async function fetchHotlines(cityKey) {
         let matchFound = false;
         let cityData = null;
 
-        // Simplistic search matching for location key from geocoded results
         for (const key in db) {
             if (cityKey.includes(key) || key.includes(cityKey)) {
                 matchFound = true;
@@ -144,23 +142,18 @@ async function fetchHotlines(cityKey) {
             container.innerHTML = '';
             
             cityData.contacts.forEach(contact => {
-                const iconColor = contact.color === 'red' ? 'text-red-600 bg-red-50 border-red-100' :
-                                  contact.color === 'blue' ? 'text-blue-600 bg-blue-50 border-blue-100' :
-                                  contact.color === 'green' ? 'text-green-600 bg-green-50 border-green-100' :
-                                  'text-orange-600 bg-orange-50 border-orange-100';
-
                 container.innerHTML += `
                     <div class="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50 hover:shadow-md transition-all group">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-900 text-xl">
+                            <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-brand-primary text-xl">
                                 <i class="fa-solid ${contact.icon}"></i>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">${contact.type}</p>
-                                <p class="text-lg font-bold text-gray-900">${contact.number}</p>
+                                <p class="text-lg font-bold text-brand-primary">${contact.number}</p>
                             </div>
                         </div>
-                        <a href="tel:${contact.number}" class="flex items-center justify-center w-10 h-10 rounded-xl border border-gray-100 transition-all shadow-sm ${iconColor} hover:text-white hover:bg-gray-900">
+                        <a href="tel:${contact.number}" class="flex items-center justify-center w-10 h-10 rounded-xl border border-brand-primary/20 transition-all shadow-sm text-brand-primary bg-brand-primary/5 hover:text-white hover:bg-brand-primary">
                             <i class="fa-solid fa-phone"></i>
                         </a>
                     </div>
@@ -170,11 +163,11 @@ async function fetchHotlines(cityKey) {
             headerTitle.textContent = "Area Not Registered";
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-full text-center py-10">
-                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-sm">
-                        <i class="fa-solid fa-house-circle-xmark text-3xl text-gray-300"></i>
+                    <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-sm">
+                        <i class="fa-solid fa-house-circle-xmark text-3xl text-red-500"></i>
                     </div>
                     <h3 class="text-lg font-bold text-gray-700">Location Not Registered</h3>
-                    <p class="text-gray-900 text-sm mt-1 max-w-xs">We currently do not have the emergency hotlines for your specific area in our database.</p>
+                    <p class="text-gray-500 text-sm mt-1 max-w-xs">We currently do not have the emergency hotlines for your specific area in our database.</p>
                 </div>`;
         }
 
