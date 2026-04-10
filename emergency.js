@@ -31,14 +31,14 @@ window.addEventListener('DOMContentLoaded', () => {
                     const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim();
                     const locText = data.city || "Location Not Set";
                     
-                    document.getElementById('desktop-sidebar-name').textContent = fullName;
-                    document.getElementById('mobile-sidebar-name').textContent = fullName;
-                    document.getElementById('desktop-sidebar-location').textContent = locText;
-                    document.getElementById('mobile-sidebar-location').textContent = locText;
+                    if(document.getElementById('desktop-sidebar-name')) document.getElementById('desktop-sidebar-name').textContent = fullName;
+                    if(document.getElementById('mobile-sidebar-name')) document.getElementById('mobile-sidebar-name').textContent = fullName;
+                    if(document.getElementById('desktop-sidebar-location')) document.getElementById('desktop-sidebar-location').textContent = locText;
+                    if(document.getElementById('mobile-sidebar-location')) document.getElementById('mobile-sidebar-location').textContent = locText;
 
                     const imgUrl = data.profile_image_url || data.id_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=15518D&color=fff`;
-                    document.getElementById('desktop-sidebar-pic').src = imgUrl;
-                    document.getElementById('mobile-sidebar-pic').src = imgUrl;
+                    if(document.getElementById('desktop-sidebar-pic')) document.getElementById('desktop-sidebar-pic').src = imgUrl;
+                    if(document.getElementById('mobile-sidebar-pic')) document.getElementById('mobile-sidebar-pic').src = imgUrl;
                 }
             } catch (e) { console.error(e); }
             
@@ -54,70 +54,112 @@ window.pingEmergencyLocation = function() {
     const locCoords = document.getElementById('location-coords');
     const yourLocationText = document.getElementById('your-location-text');
     const hotlinesContainer = document.getElementById('hotlines-container');
-
-    locStatus.innerHTML = '<i class="fa-solid fa-satellite-dish fa-beat text-brand-primary mr-1.5"></i> Searching for GPS signal...';
-    locCoords.textContent = "Detecting coordinates...";
-    yourLocationText.textContent = "Detecting...";
     
-    hotlinesContainer.innerHTML = `
-        <div class="flex flex-col items-center justify-center h-full py-10 text-brand-primary/40">
-            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3 text-brand-primary"></i>
-            <p class="font-medium text-sm text-brand-primary">Locating nearby hotlines...</p>
-        </div>`;
+    // UI Elements na magbabago
+    const headerTitle = document.getElementById('location-header-title');
+    const pingRing = document.getElementById('location-ping-ring');
+    const mainIcon = document.getElementById('location-main-icon');
+    const iconContainer = document.getElementById('location-icon-container');
+
+    // START STATE
+    if(headerTitle) headerTitle.textContent = "Locating Area...";
+    if(pingRing) pingRing.classList.remove('hidden');
+    if(mainIcon) mainIcon.className = "fa-solid fa-map-location-dot text-4xl text-brand-primary transition-all duration-300";
+    if(iconContainer) iconContainer.className = "relative w-24 h-24 rounded-full bg-brand-primary/10 flex items-center justify-center mb-6 transition-all duration-300";
+
+    if(locStatus) locStatus.innerHTML = '<i class="fa-solid fa-satellite-dish fa-beat text-brand-primary mr-1.5"></i> Searching for GPS signal...';
+    if(locCoords) locCoords.textContent = "Detecting coordinates...";
+    if(yourLocationText) yourLocationText.textContent = "Detecting...";
+    
+    if(hotlinesContainer) {
+        hotlinesContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full py-10 text-brand-primary/40">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3 text-brand-primary"></i>
+                <p class="font-medium text-sm text-brand-primary">Locating nearby hotlines...</p>
+            </div>`;
+    }
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
             
-            locCoords.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            if(locCoords) locCoords.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
             
             try {
-                locStatus.innerHTML = '<i class="fa-solid fa-map-location-dot text-brand-primary mr-1.5"></i> Reverse geocoding location...';
+                if(locStatus) locStatus.innerHTML = '<i class="fa-solid fa-map-location-dot text-brand-primary mr-1.5"></i> Reverse geocoding location...';
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
                 const data = await response.json();
                 
                 const detectedCity = data.address.city || data.address.town || data.address.municipality || data.address.village || "Unknown Area";
-                // FIX: Check multiple common keys for barangay in OSM data
                 const barangayName = data.address.village || data.address.quarter || data.address.suburb || data.address.neighbourhood || data.address.hamlet || "";
                 
-                // Display simple location
-                if(barangayName && detectedCity !== "Unknown Area") {
-                    yourLocationText.textContent = `${barangayName}, ${detectedCity}`;
-                } else if (detectedCity !== "Unknown Area") {
-                    yourLocationText.textContent = detectedCity;
-                } else {
-                     yourLocationText.textContent = "Location Unknown";
+                if(yourLocationText) {
+                    if(barangayName && detectedCity !== "Unknown Area") {
+                        yourLocationText.textContent = `${barangayName}, ${detectedCity}`;
+                    } else if (detectedCity !== "Unknown Area") {
+                        yourLocationText.textContent = detectedCity;
+                    } else {
+                        yourLocationText.textContent = "Location Unknown";
+                    }
                 }
 
+                // SUCCESS STATE UI
                 if (detectedCity && detectedCity !== "Unknown Area") {
-                    locStatus.innerHTML = `<i class="fa-solid fa-location-dot text-brand-accent mr-1.5"></i> Location verified.`;
+                    if(locStatus) locStatus.innerHTML = `<i class="fa-solid fa-location-dot text-brand-accent mr-1.5"></i> Location verified.`;
+                    
+                    if(headerTitle) headerTitle.textContent = "Location Found";
+                    if(pingRing) pingRing.classList.add('hidden');
+                    if(mainIcon) mainIcon.className = "fa-solid fa-check text-4xl text-brand-accent transition-all duration-300";
+                    if(iconContainer) iconContainer.className = "relative w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6 transition-all duration-300";
+
                     fetchHotlines(detectedCity.toLowerCase());
                 } else {
-                    locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1.5"></i> Area detected, but city name is unknown.';
+                    if(locStatus) locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-orange-500 mr-1.5"></i> Area detected, but city name is unknown.';
+                    
+                    if(headerTitle) headerTitle.textContent = "Unknown Area";
+                    if(pingRing) pingRing.classList.add('hidden');
+                    if(mainIcon) mainIcon.className = "fa-solid fa-circle-question text-4xl text-orange-500 transition-all duration-300";
+                    if(iconContainer) iconContainer.className = "relative w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center mb-6 transition-all duration-300";
+                    
                     fetchHotlines("unknown");
                 }
             } catch (error) {
                 console.error("Geocoding error:", error);
-                locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1.5"></i> Error analyzing location.';
-                yourLocationText.textContent = "Error";
-                hotlinesContainer.innerHTML = '<p class="text-red-500 font-medium text-center">Could not load hotlines due to network error.</p>';
+                if(locStatus) locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1.5"></i> Error analyzing location.';
+                if(yourLocationText) yourLocationText.textContent = "Error";
+                if(hotlinesContainer) hotlinesContainer.innerHTML = '<p class="text-red-500 font-medium text-center">Could not load hotlines due to network error.</p>';
+                
+                // ERROR STATE UI
+                if(headerTitle) headerTitle.textContent = "Location Error";
+                if(pingRing) pingRing.classList.add('hidden');
+                if(mainIcon) mainIcon.className = "fa-solid fa-triangle-exclamation text-4xl text-red-500 transition-all duration-300";
+                if(iconContainer) iconContainer.className = "relative w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6 transition-all duration-300";
             }
 
         }, (error) => {
-            locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500 mr-1.5"></i> GPS Signal Failed';
-            locCoords.textContent = error.message;
-            yourLocationText.textContent = "Access Denied";
-            hotlinesContainer.innerHTML = `
-                <div class="text-center py-10">
-                    <i class="fa-solid fa-location-crosshairs text-4xl text-red-500 mb-3"></i>
-                    <h3 class="text-lg font-bold text-gray-700">Location Access Denied</h3>
-                    <p class="text-gray-500 text-sm mt-1">Please enable GPS/Location permissions to see emergency numbers.</p>
-                </div>`;
+            if(locStatus) locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500 mr-1.5"></i> GPS Signal Failed';
+            if(locCoords) locCoords.textContent = error.message;
+            if(yourLocationText) yourLocationText.textContent = "Access Denied";
+            
+            // FAILED STATE UI
+            if(headerTitle) headerTitle.textContent = "Access Denied";
+            if(pingRing) pingRing.classList.add('hidden');
+            if(mainIcon) mainIcon.className = "fa-solid fa-location-crosshairs text-4xl text-red-500 transition-all duration-300";
+            if(iconContainer) iconContainer.className = "relative w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6 transition-all duration-300";
+
+            if(hotlinesContainer) {
+                hotlinesContainer.innerHTML = `
+                    <div class="text-center py-10">
+                        <i class="fa-solid fa-location-crosshairs text-4xl text-red-500 mb-3"></i>
+                        <h3 class="text-lg font-bold text-gray-700">Location Access Denied</h3>
+                        <p class="text-gray-500 text-sm mt-1">Please enable GPS/Location permissions to see emergency numbers.</p>
+                    </div>`;
+            }
         }, { enableHighAccuracy: true });
     } else {
-        locStatus.textContent = "Geolocation is not supported.";
-        yourLocationText.textContent = "Unsupported";
+        if(locStatus) locStatus.textContent = "Geolocation is not supported.";
+        if(yourLocationText) yourLocationText.textContent = "Unsupported";
     }
 };
 
@@ -125,6 +167,8 @@ async function fetchHotlines(cityKey) {
     const container = document.getElementById('hotlines-container');
     const headerTitle = document.getElementById('hotline-area-title');
     
+    if(!container || !headerTitle) return;
+
     try {
         const response = await fetch('hotlines.json');
         const db = await response.json();
