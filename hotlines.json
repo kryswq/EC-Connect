@@ -1,0 +1,28 @@
+{
+  "rosario": {
+    "displayName": "Rosario, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "0998-598-5595", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "(046) 438-1022", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "MDRRMO / Rescue", "number": "0905-111-2222", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "General Hospital", "number": "(046) 438-2222", "icon": "fa-hospital", "color": "green" }
+    ]
+  },
+  "maragondon": {
+    "displayName": "Maragondon, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "0998-598-5606", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "(046) 412-2222", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "MDRRMO / Rescue", "number": "0917-888-9999", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "Rural Health Unit", "number": "(046) 412-1111", "icon": "fa-hospital", "color": "green" }
+    ]
+  },
+  "general trias": {
+    "displayName": "General Trias, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "(046) 437-7242", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "(046) 437-7243", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "CDRRMO", "number": "(046) 402-0000", "icon": "fa-truck-medical", "color": "orange" }
+    ]
+  }
+}
