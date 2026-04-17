@@ -42,8 +42,6 @@
         }
         .modern-input:hover:not(:disabled) { border-color: #94a3b8; background: #ffffff; }
         .modern-input:focus { border-color: #15518D; background: #ffffff; box-shadow: 0 0 0 4px rgba(21, 81, 141, 0.15); }
-        
-        /* FIXED: Changed background to background-color so it doesn't override the arrow icon */
         .modern-input:disabled { background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; opacity: 0.7; }
 
         select.modern-input {
@@ -55,8 +53,6 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%231A824A' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12l-5-5-5 5'/%3e%3c/svg%3e");
             border-color: #1A824A; box-shadow: 0 0 0 4px rgba(26, 130, 74, 0.15); 
         }
-        
-        /* FIXED: Ensures disabled selects look correct and the arrow doesn't repeat */
         select.modern-input:disabled {
             background-color: #f1f5f9;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23cbd5e1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 8l5 5 5-5'/%3e%3c/svg%3e");
@@ -133,12 +129,46 @@
                     <input type="email" id="login-email" placeholder="name@example.com" required class="modern-input w-full">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Password</label>
-                    <input type="password" id="login-password" placeholder="••••••••" required class="modern-input w-full">
+                    <div class="flex justify-between items-center mb-1.5 ml-1">
+                        <label class="block text-sm font-semibold text-slate-700">Password</label>
+                        <button type="button" onclick="switchModal('forgot-modal')" class="text-xs font-bold text-brand-primary hover:text-[#0f3b68] transition-colors">Forgot Password?</button>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="login-password" placeholder="••••••••" required class="modern-input w-full pr-10">
+                        <button type="button" onclick="togglePassword('login-password', 'eye-login')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-brand-primary transition-colors">
+                            <i id="eye-login" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <p id="login-error" class="text-red-500 text-sm hidden text-center font-medium bg-red-50 border border-red-100 p-3 rounded-lg"></p>
                 <button type="submit" id="login-btn" class="w-full py-4 mt-2 bg-brand-primary text-white font-bold rounded-xl hover:bg-[#0f3b68] active:bg-brand-accent transition-colors shadow-glow">
                     Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="forgot-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0" onclick="closeModals()"></div>
+        <div class="modal-content w-full max-w-md rounded-[1.5rem] shadow-soft relative z-10 p-8 border border-slate-100">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="switchModal('login-modal')" class="text-slate-400 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-arrow-left"></i></button>
+                <button onclick="closeModals()" class="text-slate-400 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-50 text-brand-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-key text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-800">Reset Password</h2>
+                <p class="text-slate-500 text-sm mt-2">Enter your registered email and we will send you a secure link to reset your password.</p>
+            </div>
+            <form id="forgot-form" class="flex flex-col gap-4" onsubmit="handleForgotPassword(event)">
+                <div>
+                    <input type="email" id="forgot-email" placeholder="name@example.com" required class="modern-input w-full">
+                </div>
+                <p id="forgot-msg" class="text-sm hidden text-center font-medium p-3 rounded-lg"></p>
+                <button type="submit" id="forgot-btn" class="w-full py-4 mt-2 bg-brand-primary text-white font-bold rounded-xl hover:bg-[#0f3b68] transition-colors shadow-glow">
+                    Send Reset Link
                 </button>
             </form>
         </div>
@@ -217,9 +247,24 @@
                         <input type="tel" id="reg-mobile" placeholder="09xxxxxxxxx" required class="modern-input w-full"
                                maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
-                    <div class="md:col-span-2">
+                    
+                    <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Password</label>
-                        <input type="password" id="reg-password" required minlength="6" class="modern-input w-full" placeholder="Create a strong password">
+                        <div class="relative">
+                            <input type="password" id="reg-password" required minlength="6" class="modern-input w-full pr-10" placeholder="Create password">
+                            <button type="button" onclick="togglePassword('reg-password', 'eye-reg-1')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-brand-primary transition-colors">
+                                <i id="eye-reg-1" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Confirm Password</label>
+                        <div class="relative">
+                            <input type="password" id="reg-confirm" required minlength="6" class="modern-input w-full pr-10" placeholder="Repeat password">
+                            <button type="button" onclick="togglePassword('reg-confirm', 'eye-reg-2')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-brand-primary transition-colors">
+                                <i id="eye-reg-2" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="md:col-span-2 mt-4 flex items-center gap-3">
@@ -287,6 +332,21 @@
         function closeModals() { document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active')); }
         function switchModal(id) { closeModals(); setTimeout(() => openModal(id), 250); }
         function preventClose(e) { e.stopPropagation(); } 
+
+        // Toggle Password Visibility Logic
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
 
         function calculateAge() {
             const bdayInput = document.getElementById('reg-bday').value;
@@ -385,6 +445,43 @@
 
         loadProvinces();
 
+        // FORGOT PASSWORD LOGIC
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const btn = document.getElementById('forgot-btn');
+            const msgBox = document.getElementById('forgot-msg');
+            const email = document.getElementById('forgot-email').value;
+
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
+            btn.disabled = true;
+            
+            // Reset message box styling
+            msgBox.className = "text-sm hidden text-center font-medium p-3 rounded-lg";
+
+            try {
+                const { sendPasswordResetEmail } = window.fbFunctions;
+                await sendPasswordResetEmail(window.fbAuth, email);
+                
+                msgBox.textContent = "Reset link sent! Please check your email inbox.";
+                msgBox.classList.add('bg-green-50', 'text-green-600', 'border', 'border-green-100');
+                msgBox.classList.remove('hidden');
+                
+                document.getElementById('forgot-email').value = ''; // clear input
+                btn.innerHTML = 'Send Reset Link';
+                btn.disabled = false;
+                
+            } catch (error) {
+                let errorMessage = error.message;
+                if (error.code === 'auth/user-not-found') errorMessage = "No account found with this email.";
+                
+                msgBox.textContent = errorMessage;
+                msgBox.classList.add('bg-red-50', 'text-red-500', 'border', 'border-red-100');
+                msgBox.classList.remove('hidden');
+                btn.innerHTML = 'Send Reset Link';
+                btn.disabled = false;
+            }
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
             const btn = document.getElementById('login-btn');
@@ -401,7 +498,6 @@
                 const { signInWithEmailAndPassword } = window.fbFunctions;
                 const userCredential = await signInWithEmailAndPassword(window.fbAuth, email, password);
                 
-                // Block login if email is not verified
                 if (!userCredential.user.emailVerified) {
                     errorText.textContent = "Please verify your email address before logging in.";
                     errorText.classList.remove('hidden');
@@ -432,11 +528,19 @@
             const profileFile = document.getElementById('reg-profile-pic').files[0];
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm').value; // Get confirm password
 
             const fname = document.getElementById('reg-fname').value.trim();
             const lname = document.getElementById('reg-lname').value.trim();
             const mname = document.getElementById('reg-mname').value.trim();
             const mobile = document.getElementById('reg-mobile').value.trim();
+
+            // Password Match Validation
+            if (password !== confirmPassword) {
+                errorText.textContent = "Passwords do not match. Please try again.";
+                errorText.classList.remove('hidden');
+                return;
+            }
 
             const phoneRegex = /^09\d{9}$/;
             if (!phoneRegex.test(mobile)) {
@@ -519,11 +623,10 @@
                 // Send Verification Email
                 await sendEmailVerification(user);
                 
-                // Show Verification UI
                 document.getElementById('verify-email-text').textContent = email;
                 switchModal('verification-modal');
 
-                // --- FIXED AUTO-LOGIN POLLING MECHANISM ---
+                // Auto-Login Polling Mechanism
                 const verificationInterval = setInterval(async () => {
                     try {
                         const currentUser = window.fbAuth.currentUser; 
@@ -534,16 +637,13 @@
                             if (currentUser.emailVerified) {
                                 clearInterval(verificationInterval); 
                                 
-                                // Update UI to show success
                                 document.querySelector('#verification-modal h2').innerHTML = "<span class='text-green-600'>Email Verified!</span>";
                                 document.getElementById('verification-status-text').textContent = "Redirecting you to your dashboard...";
                                 document.querySelector('#verification-modal .fa-circle-notch').classList.replace('fa-circle-notch', 'fa-check-circle');
                                 document.querySelector('#verification-modal .fa-spin').classList.remove('fa-spin');
                                 
-                                // Update Firestore status
                                 await setDoc(doc(window.fbDb, "profile", currentUser.uid), { status: "Verified" }, { merge: true });
 
-                                // Redirect after 1.5 seconds so user can see the success message
                                 setTimeout(() => {
                                     window.location.href = 'home.html';
                                 }, 1500);
