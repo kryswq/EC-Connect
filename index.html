@@ -250,6 +250,25 @@
         </div>
     </div>
 
+    <div id="verification-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-md rounded-[1.5rem] shadow-soft relative z-10 p-8 border border-slate-100 text-center">
+            <div class="w-20 h-20 bg-blue-50 text-brand-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-envelope-open-text text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Verify Your Email</h2>
+            <p class="text-slate-600 mb-6">
+                We've sent a verification link to <br>
+                <strong id="verify-email-text" class="text-brand-dark"></strong>
+            </p>
+            <p class="text-sm text-slate-500 bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
+                Please click the link in the email. This page will automatically update and log you in once verified.
+            </p>
+            <div class="flex items-center justify-center gap-3 text-brand-primary font-medium">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Waiting for verification...
+            </div>
+        </div>
+    </div>
+
     <script>
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModals() { document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active')); }
@@ -367,7 +386,17 @@
 
             try {
                 const { signInWithEmailAndPassword } = window.fbFunctions;
-                await signInWithEmailAndPassword(window.fbAuth, email, password);
+                const userCredential = await signInWithEmailAndPassword(window.fbAuth, email, password);
+                
+                // Block login if email is not verified
+                if (!userCredential.user.emailVerified) {
+                    errorText.textContent = "Please verify your email address before logging in.";
+                    errorText.classList.remove('hidden');
+                    btn.innerHTML = 'Sign In'; 
+                    btn.disabled = false;
+                    return;
+                }
+
                 window.location.href = 'home.html'; 
             } catch (error) {
                 let errorMessage = "Invalid email or password.";
@@ -391,12 +420,35 @@
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
 
+            // --- 1. USER INFO FORMAT VERIFICATION ---
+            const fname = document.getElementById('reg-fname').value.trim();
+            const lname = document.getElementById('reg-lname').value.trim();
+            const mname = document.getElementById('reg-mname').value.trim();
+            const mobile = document.getElementById('reg-mobile').value.trim();
+
+            // Name Verification: Only allow letters, spaces, and hyphens
+            const nameRegex = /^[A-Za-z\s\-]+$/;
+            if (!nameRegex.test(fname) || !nameRegex.test(lname) || (mname && !nameRegex.test(mname))) {
+                errorText.textContent = "Names must only contain letters.";
+                errorText.classList.remove('hidden');
+                return;
+            }
+
+            // Mobile Verification: Must be exactly 11 digits starting with 09
+            const phoneRegex = /^09\d{9}$/;
+            if (!phoneRegex.test(mobile)) {
+                errorText.textContent = "Mobile number must be 11 digits and start with 09 (e.g., 09123456789).";
+                errorText.classList.remove('hidden');
+                return;
+            }
+
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Creating Account...';
             btn.disabled = true; 
             errorText.classList.add('hidden');
 
             try {
-                const { createUserWithEmailAndPassword, doc, setDoc } = window.fbFunctions;
+                // Destructure ALL needed Firebase functions here
+                const { createUserWithEmailAndPassword, sendEmailVerification, updateProfile, doc, setDoc } = window.fbFunctions;
                 let photoURL = null;
 
                 if (profileFile) {
@@ -423,33 +475,67 @@
                     photoURL = imgData.secure_url; 
                 }
 
+                // Create Firebase User
                 const userCredential = await createUserWithEmailAndPassword(window.fbAuth, email, password);
                 const user = userCredential.user;
+
+                // --- 2. UPDATE FIREBASE AUTH PROFILE (Attach Name & Photo) ---
+                let fullName = fname + " " + lname;
+                if (mname) fullName = fname + " " + mname + " " + lname;
+
+                const profileUpdates = { displayName: fullName };
+                if (photoURL) profileUpdates.photoURL = photoURL;
+                
+                await updateProfile(user, profileUpdates);
+                // -------------------------------------------------------------
 
                 const provSelect = document.getElementById('reg-province');
                 const citySel = document.getElementById('reg-city');
                 const brgySel = document.getElementById('reg-brgy');
 
                 const userData = {
-                    first_name: document.getElementById('reg-fname').value,
-                    last_name: document.getElementById('reg-lname').value,
-                    middle_name: document.getElementById('reg-mname').value, 
+                    first_name: fname,
+                    last_name: lname,
+                    middle_name: mname, 
                     birthday: document.getElementById('reg-bday').value,
                     age: parseInt(document.getElementById('reg-age').value),
-                    mobile: document.getElementById('reg-mobile').value,
+                    mobile: mobile,
                     province: provSelect.options[provSelect.selectedIndex].text,
                     city: citySel.options[citySel.selectedIndex].text,
                     barangay: brgySel.options[brgySel.selectedIndex].text,
                     postal_code: document.getElementById('reg-postal').value,
-                    created_at: new Date().toISOString()
+                    created_at: new Date().toISOString(),
+                    status: "Pending Verification"
                 };
 
                 if (photoURL) {
                     userData.profile_image_url = photoURL;
                 }
 
+                // Save to Firestore
                 await setDoc(doc(window.fbDb, "profile", user.uid), userData);
-                window.location.href = 'home.html';
+
+                // --- 3. SEND EMAIL VERIFICATION & START POLLING ---
+                await sendEmailVerification(user);
+                
+                // Show Verification UI
+                document.getElementById('verify-email-text').textContent = email;
+                switchModal('verification-modal');
+
+                // Check Firebase every 3 seconds to see if the user clicked the link
+                const verificationInterval = setInterval(async () => {
+                    await user.reload(); 
+                    if (user.emailVerified) {
+                        clearInterval(verificationInterval);
+                        
+                        // Update status to Verified in Firestore
+                        await setDoc(doc(window.fbDb, "profile", user.uid), { status: "Verified" }, { merge: true });
+
+                        // Redirect to home
+                        window.location.href = 'home.html';
+                    }
+                }, 3000); 
+                // --------------------------------------------------
 
             } catch (error) {
                 let errorMessage = error.message;
