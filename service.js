@@ -1,6 +1,6 @@
 // service.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
@@ -25,9 +25,10 @@ window.fbFunctions = {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     sendEmailVerification, 
-    updateProfile, // <-- Added updateProfile here
+    updateProfile, 
+    sendPasswordResetEmail, // <-- Added Forgot Password Function
     doc,
     setDoc
 };
 
-console.log("Firebase Auth & Firestore successfully initialized! (Storage handled by Cloudinary)");
+console.log("Firebase Auth & Firestore successfully initialized!");
