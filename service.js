@@ -1,6 +1,6 @@
 // service.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
@@ -24,6 +24,8 @@ window.fbDb = db;
 window.fbFunctions = {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendEmailVerification, 
+    updateProfile, // <-- Added updateProfile here
     doc,
     setDoc
 };
