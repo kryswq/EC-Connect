@@ -3,6 +3,74 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
+// ==========================================
+// 1. ATTACH TEXT-TO-SPEECH GLOBALLY FIRST
+// ==========================================
+window.currentUtterance = null; 
+
+window.readGuide = function(buttonElement, titleId, descId, listId) {
+    if (!window.speechSynthesis) {
+        alert("Text-to-Speech is not supported in this browser.");
+        return;
+    }
+
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        if (buttonElement.classList.contains('speaking-active')) {
+            resetAllSpeakerButtons();
+            return;
+        }
+    }
+
+    resetAllSpeakerButtons();
+
+    const titleText = document.getElementById(titleId)?.textContent || "";
+    const descText = document.getElementById(descId)?.textContent || "";
+    
+    let listText = "";
+    const listElement = document.getElementById(listId);
+    if(listElement) {
+        const listItems = listElement.querySelectorAll('li');
+        listItems.forEach((li, index) => {
+            const textSpan = li.querySelector('span:last-child');
+            if(textSpan) {
+                listText += `Step ${index + 1}. ${textSpan.textContent}. `;
+            }
+        });
+    }
+
+    const fullTextToRead = `${titleText}. ${descText}. ${listText}`;
+
+    window.currentUtterance = new SpeechSynthesisUtterance(fullTextToRead);
+    window.currentUtterance.lang = 'en-US'; 
+    window.currentUtterance.rate = 0.9; 
+
+    // Visual feedback (Button turns blue and icon beats)
+    buttonElement.classList.add('speaking-active');
+    buttonElement.innerHTML = '<i class="fa-solid fa-volume-high fa-beat"></i>';
+    buttonElement.classList.replace('bg-gray-100', 'bg-brand-primary');
+    buttonElement.classList.replace('text-gray-500', 'text-white');
+
+    window.currentUtterance.onend = function() {
+        resetAllSpeakerButtons();
+    };
+
+    window.speechSynthesis.speak(window.currentUtterance);
+};
+
+function resetAllSpeakerButtons() {
+    const buttons = document.querySelectorAll('.speaker-btn');
+    buttons.forEach(btn => {
+        btn.classList.remove('speaking-active');
+        btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+        btn.classList.add('bg-gray-100', 'text-gray-500');
+        btn.classList.remove('bg-brand-primary', 'text-white');
+    });
+}
+
+// ==========================================
+// 2. FIREBASE CONFIG & INIT
+// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBBsWGhsw7hHMOGu4QpLEOjNjKCjq_l2a0",
     authDomain: "fir-ai-app-96845.firebaseapp.com",
@@ -20,8 +88,11 @@ const dbFirestore = getFirestore(app);
 window.fbAuth = auth;
 window.fbDb = dbFirestore;
 
-console.log("Firebase initialized for Citizen Guide!");
+window.handleLogout = () => signOut(auth).then(() => window.location.href = 'index.html');
 
+// ==========================================
+// 3. PROFILE LOADER
+// ==========================================
 window.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -49,68 +120,3 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-window.handleLogout = () => signOut(auth).then(() => window.location.href = 'index.html');
-
-// ==========================================
-// TEXT TO SPEECH FEATURE (Web Speech API)
-// ==========================================
-window.currentUtterance = null; // Global variable to keep track of speaking
-
-window.readGuide = function(buttonElement, titleId, descId, listId) {
-    // 1. Stop current speech if any
-    if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        // If they clicked the same button that was playing, just stop it and return.
-        if (buttonElement.classList.contains('speaking-active')) {
-            resetAllSpeakerButtons();
-            return;
-        }
-    }
-
-    // Reset all buttons styling
-    resetAllSpeakerButtons();
-
-    // 2. Gather the text to read
-    const titleText = document.getElementById(titleId).textContent;
-    const descText = document.getElementById(descId).textContent;
-    
-    let listText = "";
-    const listItems = document.getElementById(listId).querySelectorAll('li');
-    listItems.forEach((li, index) => {
-        // Find the actual text content inside the span
-        const textSpan = li.querySelector('span:last-child');
-        if(textSpan) {
-            listText += `Step ${index + 1}. ${textSpan.textContent}. `;
-        }
-    });
-
-    const fullTextToRead = `${titleText}. ${descText}. ${listText}`;
-
-    // 3. Configure and Start Speech
-    window.currentUtterance = new SpeechSynthesisUtterance(fullTextToRead);
-    window.currentUtterance.lang = 'en-PH'; // Try Philippine English voice if available
-    window.currentUtterance.rate = 0.9; // Slightly slower for better understanding
-
-    // Change button styling while speaking
-    buttonElement.classList.add('speaking-active');
-    buttonElement.innerHTML = '<i class="fa-solid fa-volume-high fa-beat"></i>';
-    buttonElement.classList.replace('bg-gray-100', 'bg-brand-primary');
-    buttonElement.classList.replace('text-gray-500', 'text-white');
-
-    window.currentUtterance.onend = function() {
-        resetAllSpeakerButtons();
-    };
-
-    window.speechSynthesis.speak(window.currentUtterance);
-};
-
-function resetAllSpeakerButtons() {
-    const buttons = document.querySelectorAll('.speaker-btn');
-    buttons.forEach(btn => {
-        btn.classList.remove('speaking-active');
-        btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
-        btn.classList.add('bg-gray-100', 'text-gray-500');
-        btn.classList.remove('bg-brand-primary', 'text-white');
-    });
-}
