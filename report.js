@@ -20,7 +20,6 @@ const auth = getAuth(app);
 const dbFirestore = getFirestore(app);
 const dbRealtime = getDatabase(app);
 
-// I-attach sa window para magamit sa HTML
 window.fbAuth = auth;
 window.fbDb = dbFirestore;
 window.fbRtdb = dbRealtime;
@@ -28,11 +27,9 @@ window.fbFunctions = { onAuthStateChanged, signOut, doc, getDoc, ref, push, set,
 
 console.log("Firebase initialized for Report Page!");
 
-// Cloudinary Config
 const cloudName = 'dgoho5phg'; 
 const uploadPreset = 'Report'; 
 
-// Global Storage for fetched reports (so we can view them in the modal)
 window.allUserReports = {};
 
 // ==========================================
@@ -46,7 +43,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if (user) {
             currentUserId = user.uid;
             
-            // Get Profile details for Sidebar
             try {
                 const docSnap = await getDoc(doc(dbFirestore, "profile", user.uid));
                 if (docSnap.exists()) {
@@ -65,17 +61,15 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) { console.error(e); }
 
-            // Hook up form submission
             document.getElementById('report-form').addEventListener('submit', function(e) {
                 window.submitReport(e, currentUserId, currentUserName);
             });
 
-            // Fetch Realtime Reports
             const listContainer = document.getElementById('reports-list');
             const reportQuery = query(ref(dbRealtime, "reports"), orderByChild("userId"), equalTo(currentUserId));
 
             onValue(reportQuery, (snapshot) => {
-                window.allUserReports = {}; // Reset local cache
+                window.allUserReports = {}; 
                 
                 if(!snapshot.exists()) {
                     listContainer.innerHTML = `
@@ -93,10 +87,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 snapshot.forEach(child => { 
                     const rep = { id: child.key, ...child.val() };
                     reportsArray.push(rep); 
-                    window.allUserReports[rep.id] = rep; // Store in cache for Modal
+                    window.allUserReports[rep.id] = rep;
                 });
                 
-                reportsArray.sort((a, b) => b.createdAt - a.createdAt); // Newest first
+                reportsArray.sort((a, b) => b.createdAt - a.createdAt);
 
                 listContainer.innerHTML = '';
                 reportsArray.forEach(rep => {
@@ -111,7 +105,6 @@ window.addEventListener('DOMContentLoaded', () => {
                         imgHtml = `<img src="${rep.images[0]}" class="w-16 h-16 rounded-xl object-cover shrink-0 border border-gray-100">`;
                     }
 
-                    // Dinagdagan natin ng onclick para lumabas yung Modal
                     listContainer.innerHTML += `
                         <div onclick="window.viewReportDetails('${rep.id}')" class="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex gap-4 hover:bg-white hover:shadow-md transition-all cursor-pointer group">
                             ${imgHtml}
@@ -136,24 +129,18 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// ==========================================
-// 2. VIEW REPORT DETAILS (Post-Submit Modal)
-// ==========================================
 window.viewReportDetails = function(reportId) {
     const rep = window.allUserReports[reportId];
     if(!rep) return;
 
-    // Status Badge
     const cssStatus = rep.status.replace(/\s+/g, '');
     const statusLabel = document.getElementById('det-status');
     statusLabel.textContent = rep.status;
     statusLabel.className = `text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider status-${cssStatus}`;
 
-    // Texts
     document.getElementById('det-desc').textContent = rep.description;
     document.getElementById('det-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${rep.latitude.toFixed(4)}, ${rep.longitude.toFixed(4)}`;
 
-    // Images
     const imgContainer = document.getElementById('det-images');
     const imgSection = document.getElementById('det-img-section');
     imgContainer.innerHTML = '';
@@ -171,17 +158,17 @@ window.viewReportDetails = function(reportId) {
 };
 
 // ==========================================
-// 3. FORM HELPERS (Images & GPS)
+// 3. FIX: ADVANCED +X IMAGE PREVIEW & LIMIT
 // ==========================================
 window.handleImageSelect = function() {
     const input = document.getElementById('report-images');
     const previewContainer = document.getElementById('image-preview-container');
-    const files = Array.from(input.files);
+    let files = Array.from(input.files);
     
     previewContainer.innerHTML = ''; 
     
     if (files.length > 5) {
-        alert("You can only upload up to 5 images.");
+        alert("Hanggang 5 images lang po ang pwedeng i-upload.");
         input.value = ''; 
         previewContainer.classList.add('hidden');
         return;
@@ -189,13 +176,39 @@ window.handleImageSelect = function() {
 
     if (files.length > 0) {
         previewContainer.classList.remove('hidden');
-        files.forEach(file => {
+        previewContainer.className = "flex gap-2 mt-3 overflow-hidden rounded-xl"; // Flex layout para sa grid
+        
+        // Kung gusto mo max 3 images lang ang kita sa preview (para lumabas yung +1 or +2)
+        const maxVisible = 3; 
+        const visibleFiles = files.slice(0, maxVisible);
+        const extraCount = files.length - maxVisible;
+
+        visibleFiles.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = function(e) {
+                const isLastVisible = (index === maxVisible - 1);
+                const hasExtra = extraCount > 0;
+                
+                const div = document.createElement('div');
+                div.className = "relative flex-1 h-24";
+                
                 const img = document.createElement('img');
                 img.src = e.target.result;
-                img.className = "w-full h-16 object-cover rounded-lg shadow-sm border border-gray-200";
-                previewContainer.appendChild(img);
+                img.className = "w-full h-full object-cover rounded-lg shadow-sm border border-gray-200";
+                div.appendChild(img);
+                
+                // Kapag pangatlong picture na at may sobra pang file, lalagyan natin ng "+X"
+                if (isLastVisible && hasExtra) {
+                    const overlay = document.createElement('div');
+                    overlay.className = "absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center";
+                    const span = document.createElement('span');
+                    span.className = "text-white font-bold text-xl";
+                    span.textContent = `+${extraCount}`;
+                    overlay.appendChild(span);
+                    div.appendChild(overlay);
+                }
+                
+                previewContainer.appendChild(div);
             }
             reader.readAsDataURL(file);
         });
@@ -243,9 +256,6 @@ window.getLocation = function() {
     }
 };
 
-// ==========================================
-// 4. SUBMIT REPORT LOGIC
-// ==========================================
 window.submitReport = async function(e, currentUserId, currentUserName) {
     e.preventDefault();
     
@@ -268,7 +278,6 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
     msgBox.classList.add('hidden');
 
     try {
-        // 1. Fetch Contact and Address in the background
         let userMobile = "Not provided";
         let userAddress = "Location Not Set";
         
@@ -276,13 +285,11 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // FIX: Tama na yung variable na inu-update natin at hinahanap natin ang `data.mobile`
             userMobile = data.mobile || data.mobile_number || "Not provided";
             const addressParts = [data.barangay, data.city, data.province].filter(Boolean);
             if (addressParts.length > 0) userAddress = addressParts.join(', ');
         }
 
-        // 2. Upload Images to Cloudinary
         let uploadedImageUrls = [];
         if (imageFiles.length > 0) {
             msgBox.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Uploading ${imageFiles.length} image(s)...`;
@@ -307,12 +314,11 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
 
         msgBox.innerHTML = `<i class="fa-solid fa-database"></i> Saving report...`;
 
-        // 3. Save to Firebase Realtime Database
         const newReportRef = push(ref(dbRealtime, "reports"));
         await set(newReportRef, {
             userId: currentUserId,
             userName: currentUserName,
-            userContact: userMobile,        // Na-fix na! Papasok na yung number
+            userContact: userMobile,        
             userAddress: userAddress,       
             description: description,
             latitude: parseFloat(lat),
@@ -322,9 +328,9 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
             createdAt: serverTimestamp()
         });
 
-        // 4. Success Reset
         msgBox.textContent = "Report successfully submitted! Salamat sa tulong.";
         msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-green-50 text-green-600 block mt-2";
+        msgBox.classList.remove('hidden');
         
         document.getElementById('report-form').reset();
         document.getElementById('image-preview-container').innerHTML = '';
