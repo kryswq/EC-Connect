@@ -48,7 +48,7 @@
     "contacts": [
       { "type": "Police Station", "number": "0998-598-5601", "icon": "fa-shield-halved", "color": "blue" },
       { "type": "Fire Department", "number": "0915-528-3256", "icon": "fa-fire-extinguisher", "color": "red" },
-      { "type": "CDRRMO / Rescue", "number": "0939-912-0887 / (046) 472-2618", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "CDRRMO / Rescue", "number": "0939-912-0887 / (046) 472-2618", "icon": "fa-truck-medical", "color": "orange" }
     ]
              },
   "Bacoor": {
@@ -56,15 +56,16 @@
     "contacts": [
       { "type": "Police Station", "number": "0977-752-0819", "icon": "fa-shield-halved", "color": "blue" },
       { "type": "Fire Department", "number": "0966-695-9711", "icon": "fa-fire-extinguisher", "color": "red" },
-      { "type": "BDRRMO / Rescue", "number": "(046) 417-0727", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "BDRRMO / Rescue", "number": "(046) 417-0727", "icon": "fa-truck-medical", "color": "orange" }
     ]
-                },
+  },
+    
   "Cavite City": {
     "displayName": "Cavite City, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0906-360-6656", "icon": "fa-shield-halved", "color": "blue" },
       { "type": "Fire Department", "number": "0908-950-8557 / 0966-694-1416", "icon": "fa-fire-extinguisher", "color": "red" },
-      { "type": "CDRRMO / Rescue", "number": "0926-970-7556", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "CDRRMO / Rescue", "number": "0926-970-7556", "icon": "fa-truck-medical", "color": "orange" }
     ]
   }
 }
