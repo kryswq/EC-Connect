@@ -168,7 +168,7 @@ window.handleImageSelect = function() {
     previewContainer.innerHTML = ''; 
     
     if (files.length > 5) {
-        alert("Hanggang 5 images lang po ang pwedeng i-upload.");
+        alert("You can only upload up to 5 images.");
         input.value = ''; 
         previewContainer.classList.add('hidden');
         return;
@@ -176,9 +176,9 @@ window.handleImageSelect = function() {
 
     if (files.length > 0) {
         previewContainer.classList.remove('hidden');
-        previewContainer.className = "flex gap-2 mt-3 overflow-hidden rounded-xl"; // Flex layout para sa grid
+        previewContainer.className = "flex gap-2 mt-3 overflow-hidden rounded-xl"; 
         
-        // Kung gusto mo max 3 images lang ang kita sa preview (para lumabas yung +1 or +2)
+        // Show max 3 images in the preview box to display the +1 or +2
         const maxVisible = 3; 
         const visibleFiles = files.slice(0, maxVisible);
         const extraCount = files.length - maxVisible;
@@ -197,7 +197,7 @@ window.handleImageSelect = function() {
                 img.className = "w-full h-full object-cover rounded-lg shadow-sm border border-gray-200";
                 div.appendChild(img);
                 
-                // Kapag pangatlong picture na at may sobra pang file, lalagyan natin ng "+X"
+                // If it's the 3rd picture and there are more, add the "+X" overlay
                 if (isLastVisible && hasExtra) {
                     const overlay = document.createElement('div');
                     overlay.className = "absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center";
@@ -328,7 +328,7 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
             createdAt: serverTimestamp()
         });
 
-        msgBox.textContent = "Report successfully submitted! Salamat sa tulong.";
+        msgBox.textContent = "Report successfully submitted! Thank you for your help.";
         msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-green-50 text-green-600 block mt-2";
         msgBox.classList.remove('hidden');
         
