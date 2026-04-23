@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Guide | EC Connect</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-theme.js"></script> 
+    
+    <script type="module" src="guide.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #E0F2FE; margin: 0; }
+        .hide-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        #desktop-sidebar { width: 5.5rem; transition: width 0.3s ease, box-shadow 0.3s ease; overflow-x: hidden; white-space: nowrap; }
+        #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
+        #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
+        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        #mobile-sidebar { transition: transform 0.4s ease; }
+        #mobile-overlay { transition: opacity 0.3s ease; }
+    </style>
+</head>
+<body class="h-screen flex text-gray-800 selection:bg-brand-accent selection:text-white">
+
+    <div id="mobile-overlay" class="fixed inset-0 bg-brand-primary/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
+    
+    <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl transition-transform">
+        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full transition-colors"><i class="fa-solid fa-xmark text-xl text-gray-900 hover:text-red-500 transition-colors"></i></button>
+        <div class="flex items-center px-6 mb-8 shrink-0">
+            <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-10 h-10 object-contain">
+            <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
+        </div>
+        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-border-all text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Home</span></a>
+            <a href="services.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-layer-group text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Services</span></a>
+            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-regular fa-newspaper text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">CivicFeed</span></a>
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-regular fa-calendar-check text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Appointments</span></a>
+            <a href="report.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-bullhorn text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Report Issue</span></a>
+            <a href="request.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-file-signature text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Request Doc</span></a>
+            <a href="emergency.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-truck-medical text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Emergency</span></a>
+            <a href="guide.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-blue-50 text-brand-primary transition-colors"><i class="fa-solid fa-book-open text-xl w-6 text-center text-brand-primary"></i><span class="ml-4 font-semibold text-brand-primary">Citizen Guide</span></a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-gear text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Profile</span></a>
+        </nav>
+        <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="#" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-colors"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center text-gray-900"></i><span class="ml-4 font-medium text-gray-900">Log Out</span></a>
+            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
+                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] py-6 border-r border-gray-100 shadow-sm">
+        <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
+            <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-10 h-10 object-contain">
+            <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight">EC<span class="text-brand-secondary">Connect</span></span>
+        </div>
+        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-border-all text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Dashboard</span></a>
+            <a href="services.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-layer-group text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Services</span></a>
+            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-regular fa-newspaper text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">CivicFeed</span></a>
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-regular fa-calendar-check text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Appointments</span></a>
+            <a href="report.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-bullhorn text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Report Issue</span></a>
+            <a href="request.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-file-signature text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Request Doc</span></a>
+            <a href="emergency.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-truck-medical text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Emergency</span></a>
+            <a href="guide.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-blue-50 text-brand-primary transition-colors"><i class="fa-solid fa-book-open text-xl w-6 text-center text-brand-primary"></i><span class="nav-text ml-4 font-semibold text-brand-primary">Citizen Guide</span></a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary transition-colors"><i class="fa-solid fa-gear text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Profile</span></a>
+        </nav>
+        <div class="mt-auto px-3 pt-4">
+            <a href="#" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full transition-colors"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center text-gray-900"></i><span class="nav-text ml-4 font-medium text-gray-900">Log Out</span></a>
+            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
+                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
+                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
+                    <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
+                    <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 lg:ml-[5.5rem] flex flex-col min-w-0 w-full h-screen">
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between bg-[#E0F2FE]/80 backdrop-blur-md sticky top-0 border-b border-white/40 z-30">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleMobileSidebar()" class="lg:hidden text-brand-primary"><i class="fa-solid fa-bars text-xl text-gray-900"></i></button>
+                <a href="home.html" class="flex items-center justify-center w-8 h-8 rounded-full bg-white/50 text-brand-primary hover:bg-white hover:shadow-sm transition-all border border-gray-200">
+                    <i class="fa-solid fa-arrow-left text-gray-900"></i>
+                </a>
+                <div class="text-sm font-medium text-gray-500">Citizen Connect / <span class="text-brand-primary font-semibold">Citizen Guide</span></div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 md:px-8 pb-20 pt-6">
+            <div class="max-w-6xl mx-auto flex flex-col gap-6">
+                
+                <div class="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-gray-100 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+                    <div class="relative z-10 flex items-center gap-5">
+                        <div class="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-book-open-reader text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1">Citizen Guide</h1>
+                            <p class="text-sm md:text-base text-gray-500 font-medium">Learn how to easily navigate and use the digital services provided by EC Connect.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <div class="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm relative">
+                        <button onclick="window.readGuide(this, 'title-feed', 'desc-feed', 'list-feed')" class="speaker-btn absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 text-gray-500 hover:bg-brand-primary/10 hover:text-brand-primary flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                        
+                        <div class="flex items-center gap-4 mb-4 pr-12">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <i class="fa-regular fa-newspaper"></i>
+                            </div>
+                            <h2 id="title-feed" class="text-lg font-bold text-gray-900">How to use CivicFeed</h2>
+                        </div>
+                        <p id="desc-feed" class="text-gray-600 text-sm leading-relaxed mb-4">CivicFeed is your primary source for local news, announcements, and government updates.</p>
+                        <ul id="list-feed" class="space-y-3">
+                            <li class="flex items-start text-sm text-gray-600">
+                                <i class="fa-solid fa-circle-check mt-1 text-green-500 mr-3"></i>
+                                <span>Navigate to the <b>CivicFeed</b> page from the sidebar menu.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <i class="fa-solid fa-circle-check mt-1 text-green-500 mr-3"></i>
+                                <span>Scroll through the timeline to read real-time announcements posted by local administrators.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm relative">
+                        <button onclick="window.readGuide(this, 'title-appt', 'desc-appt', 'list-appt')" class="speaker-btn absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 text-gray-500 hover:bg-brand-primary/10 hover:text-brand-primary flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+
+                        <div class="flex items-center gap-4 mb-4 pr-12">
+                            <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                <i class="fa-regular fa-calendar-check"></i>
+                            </div>
+                            <h2 id="title-appt" class="text-lg font-bold text-gray-900">How to Book an Appointment</h2>
+                        </div>
+                        <p id="desc-appt" class="text-gray-600 text-sm leading-relaxed mb-4">Skip the lines by scheduling your visit to the local government office in advance.</p>
+                        <ul id="list-appt" class="space-y-3">
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">1</span>
+                                <span>Go to the <b>Appointments</b> page.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">2</span>
+                                <span>Select the specific department you need to visit from the dropdown menu.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">3</span>
+                                <span>Pick your preferred Date and Time, specify your purpose, and submit your request.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm relative">
+                        <button onclick="window.readGuide(this, 'title-req', 'desc-req', 'list-req')" class="speaker-btn absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 text-gray-500 hover:bg-brand-primary/10 hover:text-brand-primary flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+
+                        <div class="flex items-center gap-4 mb-4 pr-12">
+                            <div class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-file-signature"></i>
+                            </div>
+                            <h2 id="title-req" class="text-lg font-bold text-gray-900">How to Request a Document</h2>
+                        </div>
+                        <p id="desc-req" class="text-gray-600 text-sm leading-relaxed mb-4">Apply for clearances, permits, and certificates directly from your phone.</p>
+                        <ul id="list-req" class="space-y-3">
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">1</span>
+                                <span>Go to the <b>Request Doc</b> page.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">2</span>
+                                <span>Select the Document Type and state your purpose.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">3</span>
+                                <span>Tap the upload area to attach up to 2 pictures of your Valid ID for verification.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">4</span>
+                                <span>Review your details and submit. Track its progress on the right panel until it says "Ready for Pickup".</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm relative">
+                        <button onclick="window.readGuide(this, 'title-rep', 'desc-rep', 'list-rep')" class="speaker-btn absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 text-gray-500 hover:bg-brand-primary/10 hover:text-brand-primary flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+
+                        <div class="flex items-center gap-4 mb-4 pr-12">
+                            <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-bullhorn"></i>
+                            </div>
+                            <h2 id="title-rep" class="text-lg font-bold text-gray-900">How to Report an Issue</h2>
+                        </div>
+                        <p id="desc-rep" class="text-gray-600 text-sm leading-relaxed mb-4">Help maintain your community by reporting broken infrastructures or hazards.</p>
+                        <ul id="list-rep" class="space-y-3">
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">1</span>
+                                <span>Go to the <b>Report Issue</b> page and type a description of the problem.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">2</span>
+                                <span>Upload up to 5 photos as proof. (Tap any photo to enlarge it).</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">3</span>
+                                <span>Click <b>Get Current Location</b> to pin exactly where the issue is. Make sure your device GPS is turned ON.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0">4</span>
+                                <span>Submit and wait for action from local authorities. Track updates on the right panel.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm md:col-span-2 relative">
+                        <button onclick="window.readGuide(this, 'title-emg', 'desc-emg', 'list-emg')" class="speaker-btn absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 text-gray-500 hover:bg-brand-primary/10 hover:text-brand-primary flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+
+                        <div class="flex items-center gap-4 mb-4 pr-12">
+                            <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-truck-medical"></i>
+                            </div>
+                            <h2 id="title-emg" class="text-lg font-bold text-gray-900">How to Use Emergency Hotlines</h2>
+                        </div>
+                        <p id="desc-emg" class="text-gray-600 text-sm leading-relaxed mb-4">Get instant access to rescue and police lines based on where you are.</p>
+                        <ul id="list-emg" class="space-y-3">
+                            <li class="flex items-start text-sm text-gray-600">
+                                <i class="fa-solid fa-circle-check mt-1 text-green-500 mr-3"></i>
+                                <span>Upon opening the <b>Emergency</b> page, the system will automatically scan your exact location.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <i class="fa-solid fa-circle-check mt-1 text-green-500 mr-3"></i>
+                                <span>Once your City or Municipality is detected, all local hotlines (Police, Fire, MDRRMO) will appear.</span>
+                            </li>
+                            <li class="flex items-start text-sm text-gray-600">
+                                <i class="fa-solid fa-circle-check mt-1 text-green-500 mr-3"></i>
+                                <span>Tap the <b>Phone Icon</b> next to any number to dial it immediately on your phone.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleMobileSidebar() {
+            document.getElementById('mobile-sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.toggle('opacity-0');
+            document.getElementById('mobile-overlay').classList.toggle('pointer-events-none');
+        }
+    </script>
+</body>
+</html>
