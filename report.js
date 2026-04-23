@@ -24,16 +24,14 @@ window.fbDb = dbFirestore;
 window.fbRtdb = dbRealtime;
 window.fbFunctions = { onAuthStateChanged, signOut, doc, getDoc, ref, push, set, onValue, query, orderByChild, equalTo, serverTimestamp };
 
-console.log("Firebase initialized for Report Page!");
-
 const cloudName = 'dgoho5phg'; 
 const uploadPreset = 'Report'; 
 
 window.allUserReports = {};
-window.pendingReportData = null; 
+window.pendingReportData = null;
 
 // ==========================================
-// RENDER IMAGE GRID (Reusable for +X and Lightbox)
+// UTILITY: RENDER IMAGE GRID with +X & LIGHTBOX
 // ==========================================
 window.renderImageGrid = function(containerId, imageUrlsArray) {
     const container = document.getElementById(containerId);
@@ -85,7 +83,7 @@ window.renderImageGrid = function(containerId, imageUrlsArray) {
 };
 
 // ==========================================
-// INITIALIZATION
+// 1. INITIALIZATION & LISTENER
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
     let currentUserId = null;
@@ -118,7 +116,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) { console.error(e); }
 
-            // 1. ON FORM SUBMIT (SHOW PREVIEW MODAL)
+            // ON FORM SUBMIT (SHOW PREVIEW MODAL)
             document.getElementById('report-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -140,49 +138,32 @@ window.addEventListener('DOMContentLoaded', () => {
                 triggerBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Preparing Preview...';
                 triggerBtn.disabled = true;
 
+                // Instant Local File Reading for the preview Modal
                 let dataUrls = [];
-                let filesProcessed = 0;
-                
-                if(imageFiles.length > 0) {
-                    for(let i=0; i<imageFiles.length; i++) {
-                        const reader = new FileReader();
-                        reader.onload = function(evt) {
-                            dataUrls.push(evt.target.result);
-                            filesProcessed++;
-                            
-                            if(filesProcessed === imageFiles.length) {
-                                window.pendingReportData = { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles };
-                                
-                                document.getElementById('prev-name').textContent = currentUserName;
-                                document.getElementById('prev-number').textContent = currentUserMobile;
-                                document.getElementById('prev-address').textContent = currentUserAddress;
-                                document.getElementById('prev-desc').textContent = desc;
-                                document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
-                                
-                                window.renderImageGrid('prev-images', dataUrls);
-                                document.getElementById('preview-modal').classList.remove('hidden');
-                                
-                                triggerBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Review & Submit';
-                                triggerBtn.disabled = false;
-                            }
-                        }
-                        reader.readAsDataURL(imageFiles[i]);
-                    }
-                } else {
-                    window.pendingReportData = { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles: [] };
-                    
-                    document.getElementById('prev-name').textContent = currentUserName;
-                    document.getElementById('prev-number').textContent = currentUserMobile;
-                    document.getElementById('prev-address').textContent = currentUserAddress;
-                    document.getElementById('prev-desc').textContent = desc;
-                    document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
-                    
-                    window.renderImageGrid('prev-images', []);
-                    document.getElementById('preview-modal').classList.remove('hidden');
-                    
-                    triggerBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Review & Submit';
-                    triggerBtn.disabled = false;
+                if (imageFiles.length > 0) {
+                    dataUrls = Array.from(imageFiles).map(file => URL.createObjectURL(file));
                 }
+
+                window.pendingReportData = { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles };
+                
+                document.getElementById('prev-name').textContent = currentUserName;
+                document.getElementById('prev-number').textContent = currentUserMobile;
+                document.getElementById('prev-address').textContent = currentUserAddress;
+                document.getElementById('prev-desc').textContent = desc;
+                document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
+                
+                // FIX: Unhide the parent container specifically for the Preview Modal
+                const prevSection = document.getElementById('prev-img-section');
+                if (dataUrls.length > 0) {
+                    prevSection.classList.remove('hidden');
+                    window.renderImageGrid('prev-images', dataUrls);
+                } else {
+                    prevSection.classList.add('hidden');
+                }
+                
+                document.getElementById('preview-modal').classList.remove('hidden');
+                triggerBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Review & Submit';
+                triggerBtn.disabled = false;
             });
 
             // FETCH REALTIME LIST
@@ -265,7 +246,15 @@ window.viewReportDetails = function(reportId) {
     document.getElementById('det-desc').textContent = rep.description;
     document.getElementById('det-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${rep.latitude.toFixed(4)}, ${rep.longitude.toFixed(4)}`;
 
-    window.renderImageGrid('det-images', rep.images || []);
+    // FIX: Unhide the parent container specifically for the Progress Modal
+    const detSection = document.getElementById('det-img-section');
+    if (rep.images && rep.images.length > 0) {
+        detSection.classList.remove('hidden');
+        window.renderImageGrid('det-images', rep.images);
+    } else {
+        detSection.classList.add('hidden');
+    }
+
     document.getElementById('details-modal').classList.remove('hidden');
 };
 
@@ -284,21 +273,9 @@ window.handleImageSelect = function() {
     }
 
     if (files.length > 0) {
-        let dataUrls = [];
-        let filesProcessed = 0;
-        
-        for(let i=0; i<files.length; i++) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                dataUrls.push(evt.target.result);
-                filesProcessed++;
-                
-                if(filesProcessed === files.length) {
-                    window.renderImageGrid('image-preview-container', dataUrls);
-                }
-            }
-            reader.readAsDataURL(files[i]);
-        }
+        // Fast URL Object approach for instant form preview
+        let dataUrls = files.map(file => URL.createObjectURL(file));
+        window.renderImageGrid('image-preview-container', dataUrls);
     } else {
         document.getElementById('image-preview-container').classList.add('hidden');
     }
