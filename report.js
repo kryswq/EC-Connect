@@ -28,22 +28,25 @@ const cloudName = 'dgoho5phg';
 const uploadPreset = 'Report'; 
 
 window.allUserReports = {};
-window.pendingReportData = null; // Store data before confirmation
+window.pendingReportData = null;
 
 // ==========================================
 // UTILITY: RENDER IMAGE GRID with +X & LIGHTBOX
 // ==========================================
-// This function is used to consistently render images in all Modals and Previews.
+// This function handles the main form, the review modal, and the details modal!
 window.renderImageGrid = function(containerId, imageUrlsArray) {
     const container = document.getElementById(containerId);
+    if (!container) return;
+
     container.innerHTML = '';
     
     if (!imageUrlsArray || imageUrlsArray.length === 0) {
-        container.parentElement.classList.add('hidden');
+        container.classList.add('hidden');
         return;
     }
 
-    container.parentElement.classList.remove('hidden');
+    // Show container and apply grid styling
+    container.classList.remove('hidden');
     container.className = "flex gap-2 mt-3 overflow-hidden rounded-xl w-full"; 
     
     const maxVisible = 3; 
@@ -55,7 +58,8 @@ window.renderImageGrid = function(containerId, imageUrlsArray) {
         const hasExtra = extraCount > 0;
 
         const div = document.createElement('div');
-        div.className = "relative flex-1 h-24 cursor-pointer hover:opacity-90 transition-opacity bg-gray-100 rounded-lg";
+        div.className = "relative flex-1 h-24 cursor-pointer hover:opacity-90 transition-opacity bg-gray-100 rounded-lg overflow-hidden";
+        
         // Click to open lightbox
         div.onclick = () => {
             document.getElementById('lightbox-img').src = src;
@@ -64,12 +68,13 @@ window.renderImageGrid = function(containerId, imageUrlsArray) {
 
         const img = document.createElement('img');
         img.src = src;
-        img.className = "w-full h-full object-cover rounded-lg shadow-sm border border-gray-200";
+        img.className = "w-full h-full object-cover shadow-sm border border-gray-200";
         div.appendChild(img);
 
+        // Add the "+X" dark overlay on the 3rd image if there are 4 or 5 total images
         if (isLastVisible && hasExtra) {
             const overlay = document.createElement('div');
-            overlay.className = "absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center transition-colors hover:bg-black/70";
+            overlay.className = "absolute inset-0 bg-black/60 flex items-center justify-center transition-colors hover:bg-black/70";
             const span = document.createElement('span');
             span.className = "text-white font-bold text-xl drop-shadow-md";
             span.textContent = `+${extraCount}`;
@@ -81,7 +86,9 @@ window.renderImageGrid = function(containerId, imageUrlsArray) {
     });
 };
 
-
+// ==========================================
+// 1. INITIALIZATION & LISTENER
+// ==========================================
 window.addEventListener('DOMContentLoaded', () => {
     let currentUserId = null;
     let currentUserName = "Citizen";
@@ -102,14 +109,14 @@ window.addEventListener('DOMContentLoaded', () => {
                     if (addressParts.length > 0) currentUserAddress = addressParts.join(', ');
 
                     const locText = data.city || "Location Not Set";
-                    document.getElementById('desktop-sidebar-name').textContent = currentUserName;
-                    document.getElementById('mobile-sidebar-name').textContent = currentUserName;
-                    document.getElementById('desktop-sidebar-location').textContent = locText;
-                    document.getElementById('mobile-sidebar-location').textContent = locText;
+                    if(document.getElementById('desktop-sidebar-name')) document.getElementById('desktop-sidebar-name').textContent = currentUserName;
+                    if(document.getElementById('mobile-sidebar-name')) document.getElementById('mobile-sidebar-name').textContent = currentUserName;
+                    if(document.getElementById('desktop-sidebar-location')) document.getElementById('desktop-sidebar-location').textContent = locText;
+                    if(document.getElementById('mobile-sidebar-location')) document.getElementById('mobile-sidebar-location').textContent = locText;
 
                     const imgUrl = data.profile_image_url || data.id_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=15518D&color=fff`;
-                    document.getElementById('desktop-sidebar-pic').src = imgUrl;
-                    document.getElementById('mobile-sidebar-pic').src = imgUrl;
+                    if(document.getElementById('desktop-sidebar-pic')) document.getElementById('desktop-sidebar-pic').src = imgUrl;
+                    if(document.getElementById('mobile-sidebar-pic')) document.getElementById('mobile-sidebar-pic').src = imgUrl;
                 }
             } catch (e) { console.error(e); }
 
@@ -131,7 +138,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
                 msgBox.classList.add('hidden');
 
-                // Read files into Data URLs for the Preview Modal
                 let dataUrls = [];
                 let filesProcessed = 0;
                 
@@ -252,15 +258,14 @@ window.viewReportDetails = function(reportId) {
     document.getElementById('det-desc').textContent = rep.description;
     document.getElementById('det-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${rep.latitude.toFixed(4)}, ${rep.longitude.toFixed(4)}`;
 
-    // Render using the unified helper
+    // Render using the unified helper for Lightbox
     window.renderImageGrid('det-images', rep.images || []);
 
     document.getElementById('details-modal').classList.remove('hidden');
 };
 
-
 // ==========================================
-// FORM HELPERS
+// FORM HELPERS (Updates Main Form Preview instantly)
 // ==========================================
 window.handleImageSelect = function() {
     const input = document.getElementById('report-images');
@@ -283,6 +288,7 @@ window.handleImageSelect = function() {
                 dataUrls.push(evt.target.result);
                 filesProcessed++;
                 
+                // When all files are read, trigger the same grid renderer on the main form!
                 if(filesProcessed === files.length) {
                     window.renderImageGrid('image-preview-container', dataUrls);
                 }
@@ -350,7 +356,6 @@ window.confirmReportSubmit = async function() {
     try {
         let uploadedImageUrls = [];
 
-        // Upload to Cloudinary
         if (imageFiles.length > 0) {
             btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Photos...';
 
@@ -372,7 +377,6 @@ window.confirmReportSubmit = async function() {
 
         btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving Report...';
 
-        // Save to Firebase
         const newReportRef = push(ref(dbRealtime, "reports"));
         await set(newReportRef, {
             userId: currentUserId,
@@ -387,7 +391,6 @@ window.confirmReportSubmit = async function() {
             createdAt: serverTimestamp()
         });
 
-        // Cleanup and Success
         document.getElementById('preview-modal').classList.add('hidden');
         
         msgBox.textContent = "Report successfully submitted! Thank you for your help.";
