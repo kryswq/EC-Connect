@@ -1,273 +1,432 @@
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report an Issue | EC Connect</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="tailwind-theme.js"></script> 
-    
-    <script type="module" src="report.js"></script>
+// report.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getDatabase, ref, push, set, onValue, query, orderByChild, equalTo, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
-    <style>
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #E0F2FE; margin: 0; }
-        .hide-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+const firebaseConfig = {
+    apiKey: "AIzaSyBBsWGhsw7hHMOGu4QpLEOjNjKCjq_l2a0",
+    authDomain: "fir-ai-app-96845.firebaseapp.com",
+    databaseURL: "https://fir-ai-app-96845-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "fir-ai-app-96845",
+    storageBucket: "fir-ai-app-96845.firebasestorage.app",
+    messagingSenderId: "564401363339",
+    appId: "1:564401363339:web:f971caecec0f6f1af5778e"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const dbFirestore = getFirestore(app);
+const dbRealtime = getDatabase(app);
+
+window.fbAuth = auth;
+window.fbDb = dbFirestore;
+window.fbRtdb = dbRealtime;
+window.fbFunctions = { onAuthStateChanged, signOut, doc, getDoc, ref, push, set, onValue, query, orderByChild, equalTo, serverTimestamp };
+
+console.log("Firebase initialized for Report Page!");
+
+const cloudName = 'dgoho5phg'; 
+const uploadPreset = 'Report'; 
+
+window.allUserReports = {};
+window.pendingReportData = null; 
+
+// ==========================================
+// RENDER IMAGE GRID (Reusable for +X and Lightbox)
+// ==========================================
+window.renderImageGrid = function(containerId, imageUrlsArray) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = '';
+    
+    if (!imageUrlsArray || imageUrlsArray.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+
+    container.classList.remove('hidden');
+    container.className = "flex gap-2 mt-3 overflow-hidden rounded-xl w-full"; 
+    
+    const maxVisible = 3; 
+    const visibleImgs = imageUrlsArray.slice(0, maxVisible);
+    const extraCount = imageUrlsArray.length - maxVisible;
+
+    visibleImgs.forEach((src, index) => {
+        const isLastVisible = (index === maxVisible - 1);
+        const hasExtra = extraCount > 0;
+
+        const div = document.createElement('div');
+        div.className = "relative flex-1 h-24 cursor-pointer hover:opacity-90 transition-opacity bg-gray-100 rounded-lg overflow-hidden";
         
-        #desktop-sidebar { width: 5.5rem; transition: width 0.3s ease, box-shadow 0.3s ease; overflow-x: hidden; white-space: nowrap; }
-        #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
-        #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
-        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); pointer-events: auto; }
-        #mobile-sidebar { transition: transform 0.4s ease; }
-        #mobile-overlay { transition: opacity 0.3s ease; }
+        div.onclick = () => {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('image-lightbox').classList.remove('hidden');
+        };
 
-        /* Report Status Badges */
-        .status-Pending { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-        .status-InProgress { background-color: #eff6ff; color: #0369a1; border: 1px solid #bae6fd; }
-        .status-Resolved { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-    </style>
-</head>
-<body class="h-screen flex text-gray-800 selection:bg-red-500 selection:text-white">
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = "w-full h-full object-cover shadow-sm border border-gray-200";
+        div.appendChild(img);
 
-    <div id="mobile-overlay" class="fixed inset-0 bg-brand-primary/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
+        if (isLastVisible && hasExtra) {
+            const overlay = document.createElement('div');
+            overlay.className = "absolute inset-0 bg-black/60 flex items-center justify-center transition-colors hover:bg-black/70";
+            const span = document.createElement('span');
+            span.className = "text-white font-bold text-xl drop-shadow-md";
+            span.textContent = `+${extraCount}`;
+            overlay.appendChild(span);
+            div.appendChild(overlay);
+        }
+
+        container.appendChild(div);
+    });
+};
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+window.addEventListener('DOMContentLoaded', () => {
+    let currentUserId = null;
+    let currentUserName = "Citizen";
+    let currentUserMobile = "Not provided";
+    let currentUserAddress = "Location Not Set";
     
-    <div id="image-lightbox" class="fixed inset-0 bg-black/95 z-[200] hidden flex items-center justify-center p-4 transition-opacity">
-        <button onclick="window.closeLightbox()" class="absolute top-6 right-6 text-white/70 hover:text-white transition-colors w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full">
-            <i class="fa-solid fa-xmark text-2xl"></i>
-        </button>
-        <img id="lightbox-img" src="" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl select-none">
-    </div>
-
-    <div id="preview-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-magnifying-glass mr-2 text-brand-primary"></i>Review Report</h3>
-                <button onclick="window.closePreview()" class="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUserId = user.uid;
             
-            <div class="p-6 overflow-y-auto hide-scroll flex-1 flex flex-col gap-5">
-                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                    <p class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Reporter Details</p>
-                    <p class="text-sm font-semibold text-gray-900" id="prev-name">Loading...</p>
-                    <p class="text-sm text-gray-600 mt-1"><i class="fa-solid fa-phone mr-1.5 text-gray-400"></i><span id="prev-number">Loading...</span></p>
-                    <p class="text-sm text-gray-600 mt-1"><i class="fa-solid fa-house mr-1.5 text-gray-400"></i><span id="prev-address">Loading...</span></p>
-                </div>
+            try {
+                const docSnap = await getDoc(doc(dbFirestore, "profile", user.uid));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentUserName = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+                    currentUserMobile = data.mobile || data.mobile_number || "Not provided";
+                    const addressParts = [data.barangay, data.city, data.province].filter(Boolean);
+                    if (addressParts.length > 0) currentUserAddress = addressParts.join(', ');
 
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Issue Description</p>
-                    <p class="text-sm font-medium text-gray-800 bg-gray-50 p-4 rounded-xl border border-gray-100" id="prev-desc"></p>
-                </div>
+                    const locText = data.city || "Location Not Set";
+                    if(document.getElementById('desktop-sidebar-name')) document.getElementById('desktop-sidebar-name').textContent = currentUserName;
+                    if(document.getElementById('mobile-sidebar-name')) document.getElementById('mobile-sidebar-name').textContent = currentUserName;
+                    if(document.getElementById('desktop-sidebar-location')) document.getElementById('desktop-sidebar-location').textContent = locText;
+                    if(document.getElementById('mobile-sidebar-location')) document.getElementById('mobile-sidebar-location').textContent = locText;
 
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Location Pinned</p>
-                    <p class="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100" id="prev-loc"></p>
-                </div>
+                    const imgUrl = data.profile_image_url || data.id_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=15518D&color=fff`;
+                    if(document.getElementById('desktop-sidebar-pic')) document.getElementById('desktop-sidebar-pic').src = imgUrl;
+                    if(document.getElementById('mobile-sidebar-pic')) document.getElementById('mobile-sidebar-pic').src = imgUrl;
+                }
+            } catch (e) { console.error(e); }
 
-                <div id="prev-img-section" class="hidden">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Photos</p>
-                    <div id="prev-images"></div>
-                </div>
-            </div>
-
-            <div class="p-6 border-t border-gray-100 bg-white grid grid-cols-2 gap-3">
-                <button onclick="window.closePreview()" class="py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Edit</button>
-                <button onclick="window.confirmReportSubmit()" id="btn-confirm-submit" class="py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Confirm Submit
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="details-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-list-check mr-2 text-brand-primary"></i>Report Progress</h3>
-                <button onclick="window.closeDetails()" class="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto hide-scroll flex-1 flex flex-col gap-5">
-                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Status</span>
-                    <span id="det-status" class="text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Loading...</span>
-                </div>
-
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Issue Description</p>
-                    <p class="text-sm font-medium text-gray-800 bg-white p-4 rounded-xl border border-gray-200" id="det-desc"></p>
-                </div>
-
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Location Pinned</p>
-                    <p class="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100" id="det-loc"></p>
-                </div>
-
-                <div id="det-img-section" class="hidden">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Photos</p>
-                    <div id="det-images"></div>
-                </div>
-            </div>
-
-            <div class="p-5 border-t border-gray-100 bg-white">
-                <button onclick="window.closeDetails()" class="w-full py-3.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl transition-transform">
-        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><i class="fa-solid fa-xmark"></i></button>
-        <div class="flex items-center px-6 mb-8 shrink-0">
-            <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-10 h-10 object-contain">
-            <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
-        </div>
-        <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium">Home</span></a>
-            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium">EC Feed</span></a>
-            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="ml-4 font-medium">Appointments</span></a>
-            <a href="report.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-red-500 bg-red-50 text-red-600"><i class="fa-solid fa-bullhorn text-xl w-6 text-center"></i><span class="ml-4 font-semibold">Report Issue</span></a>
-            <a href="request.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-file-signature text-xl w-6 text-center"></i><span class="ml-4 font-medium">Request Doc</span></a>
-            <a href="emergency.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-truck-medical text-xl w-6 text-center"></i><span class="ml-4 font-medium">Emergency</span></a>
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Profile</span></a>
-        </nav>
-        <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
-            <a href="#" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium">Log Out</span></a>
-            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
-                <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
-                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
-                    <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
-                    <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] py-6 border-r border-gray-100 shadow-sm">
-        <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
-            <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-10 h-10 object-contain">
-            <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight">EC<span class="text-brand-secondary">Connect</span></span>
-        </div>
-        <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Dashboard</span></a>
-            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">CivicFeed</span></a>
-            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Appointments</span></a>
-            <a href="report.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-red-500 bg-red-50 text-red-600"><i class="fa-solid fa-bullhorn text-xl w-6 text-center"></i><span class="nav-text ml-4 font-semibold">Report Issue</span></a>
-            <a href="request.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-file-signature text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Request Doc</span></a>
-            <a href="emergency.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-truck-medical text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Emergency</span></a>
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Profile</span></a>
-        </nav>
-        <div class="mt-auto px-3 pt-4">
-            <a href="#" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Log Out</span></a>
-            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
-                <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
-                <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
-                    <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
-                    <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    <main class="flex-1 lg:ml-[5.5rem] flex flex-col min-w-0 w-full h-screen">
-        <header class="h-16 px-6 md:px-8 flex items-center justify-between bg-[#E0F2FE]/80 backdrop-blur-md sticky top-0 border-b border-white/40 z-30">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleMobileSidebar()" class="lg:hidden text-brand-primary"><i class="fa-solid fa-bars text-xl"></i></button>
-                <a href="home.html" class="flex items-center justify-center w-8 h-8 rounded-full bg-white/50 text-brand-primary hover:bg-white hover:shadow-sm transition-all border border-gray-200">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </a>
-                <div class="text-sm font-medium text-gray-500">Citizen Connect / <span class="text-red-600 font-semibold">Report Issue</span></div>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto px-4 md:px-8 pb-20 pt-6">
-            <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6 md:gap-8">
+            // 1. ON FORM SUBMIT (SHOW PREVIEW MODAL)
+            document.getElementById('report-form').addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                <div class="w-full lg:w-[45%] flex flex-col gap-6">
-                    <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-                        <div class="flex items-center gap-3 border-b border-gray-50 pb-5 mb-5">
-                            <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-xl font-bold text-brand-primary">Report an Issue</h2>
-                                <p class="text-xs text-gray-500 font-medium">Help us fix broken streetlights or trash piles.</p>
-                            </div>
-                        </div>
-                        
-                        <form id="report-form" class="flex flex-col gap-5">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Describe the Problem</label>
-                                <textarea id="report-description" rows="3" required placeholder="E.g., Dark and broken streetlight at our corner..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-red-400 focus:bg-white transition-all resize-none text-sm font-semibold text-gray-700"></textarea>
-                            </div>
+                const lat = document.getElementById('report-lat').value;
+                const long = document.getElementById('report-long').value;
+                const desc = document.getElementById('report-description').value;
+                const imageFiles = document.getElementById('report-images').files;
+                const msgBox = document.getElementById('report-msg');
+                const triggerBtn = document.getElementById('btn-trigger-preview');
 
-                            <div>
-                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Upload Photos (Max 5)</label>
-                                <div class="relative w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl px-4 py-6 text-center cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all group">
-                                    <i class="fa-solid fa-camera text-3xl text-gray-300 group-hover:text-red-400 mb-2 transition-colors"></i>
-                                    <p class="text-xs text-gray-500 font-medium group-hover:text-red-500">Tap to Take a Photo or Upload</p>
-                                    <input type="file" id="report-images" multiple accept="image/*" onchange="window.handleImageSelect()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                </div>
-                                <div id="image-preview-container" class="hidden mt-3"></div>
-                            </div>
+                if (!lat || !long) {
+                    msgBox.textContent = "Please pin your location first.";
+                    msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-600 block mt-2";
+                    msgBox.classList.remove('hidden');
+                    return;
+                }
+                msgBox.classList.add('hidden');
 
-                            <div>
-                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Location Pin</label>
-                                <div class="flex gap-2">
-                                    <button type="button" id="btn-location" onclick="window.getLocation()" class="w-full py-3 bg-brand-primary text-white font-bold rounded-xl text-sm transition-all hover:bg-[#0f3b68] flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-location-crosshairs"></i> Get Current Location
-                                    </button>
-                                </div>
-                                <input type="hidden" id="report-lat" required>
-                                <input type="hidden" id="report-long" required>
-                                <p id="location-status" class="hidden text-xs font-bold mt-2 ml-1"></p>
-                            </div>
+                triggerBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Preparing Preview...';
+                triggerBtn.disabled = true;
 
-                            <p id="report-msg" class="hidden p-3 rounded-xl text-sm font-semibold text-center"></p>
+                let dataUrls = [];
+                let filesProcessed = 0;
+                
+                if(imageFiles.length > 0) {
+                    for(let i=0; i<imageFiles.length; i++) {
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            dataUrls.push(evt.target.result);
+                            filesProcessed++;
                             
-                            <button type="submit" id="btn-trigger-preview" class="w-full py-4 mt-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 active:scale-[0.98] shadow-md transition-all flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-eye"></i> Review & Submit
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="w-full lg:w-[55%] bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col min-h-[500px]">
-                    <div class="flex items-center gap-3 border-b border-gray-50 pb-5 mb-5">
-                        <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-list-check text-lg"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-brand-primary">My Submitted Reports</h2>
-                            <p class="text-xs text-gray-500 font-medium">Click a report to track its progress</p>
-                        </div>
-                    </div>
+                            if(filesProcessed === imageFiles.length) {
+                                window.pendingReportData = { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles };
+                                
+                                document.getElementById('prev-name').textContent = currentUserName;
+                                document.getElementById('prev-number').textContent = currentUserMobile;
+                                document.getElementById('prev-address').textContent = currentUserAddress;
+                                document.getElementById('prev-desc').textContent = desc;
+                                document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
+                                
+                                window.renderImageGrid('prev-images', dataUrls);
+                                document.getElementById('preview-modal').classList.remove('hidden');
+                                
+                                triggerBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Review & Submit';
+                                triggerBtn.disabled = false;
+                            }
+                        }
+                        reader.readAsDataURL(imageFiles[i]);
+                    }
+                } else {
+                    window.pendingReportData = { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles: [] };
                     
-                    <div id="reports-list" class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 hide-scroll">
-                        <div class="flex flex-col items-center justify-center h-full text-brand-primary/40">
-                            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3"></i>
-                            <p class="font-medium text-sm">Loading your reports...</p>
+                    document.getElementById('prev-name').textContent = currentUserName;
+                    document.getElementById('prev-number').textContent = currentUserMobile;
+                    document.getElementById('prev-address').textContent = currentUserAddress;
+                    document.getElementById('prev-desc').textContent = desc;
+                    document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
+                    
+                    window.renderImageGrid('prev-images', []);
+                    document.getElementById('preview-modal').classList.remove('hidden');
+                    
+                    triggerBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Review & Submit';
+                    triggerBtn.disabled = false;
+                }
+            });
+
+            // FETCH REALTIME LIST
+            const listContainer = document.getElementById('reports-list');
+            const reportQuery = query(ref(dbRealtime, "reports"), orderByChild("userId"), equalTo(currentUserId));
+
+            onValue(reportQuery, (snapshot) => {
+                window.allUserReports = {}; 
+                
+                if(!snapshot.exists()) {
+                    listContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full text-center">
+                            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-comment-slash text-3xl text-gray-300"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-700">No reports found</h3>
+                            <p class="text-gray-400 text-sm mt-1">Issues you report will appear here.</p>
+                        </div>`;
+                    return;
+                }
+
+                let reportsArray = [];
+                snapshot.forEach(child => { 
+                    const rep = { id: child.key, ...child.val() };
+                    reportsArray.push(rep); 
+                    window.allUserReports[rep.id] = rep;
+                });
+                
+                reportsArray.sort((a, b) => b.createdAt - a.createdAt);
+
+                listContainer.innerHTML = '';
+                reportsArray.forEach(rep => {
+                    const dateObj = new Date(rep.createdAt);
+                    const readableDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    
+                    const cssStatus = rep.status.replace(/\s+/g, '');
+                    const statusClass = `status-${cssStatus}`; 
+
+                    let imgHtml = `<div class="w-16 h-16 rounded-xl bg-slate-200 flex items-center justify-center text-slate-400 shrink-0"><i class="fa-solid fa-image"></i></div>`;
+                    if (rep.images && rep.images.length > 0) {
+                        imgHtml = `<img src="${rep.images[0]}" class="w-16 h-16 rounded-xl object-cover shrink-0 border border-gray-100">`;
+                    }
+
+                    listContainer.innerHTML += `
+                        <div onclick="window.viewReportDetails('${rep.id}')" class="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex gap-4 hover:bg-white hover:shadow-md transition-all cursor-pointer group">
+                            ${imgHtml}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="font-bold text-gray-900 text-sm truncate pr-2 group-hover:text-brand-primary">${rep.description}</h4>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${statusClass} uppercase tracking-wider shrink-0">${rep.status}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium mb-1 truncate">
+                                    <i class="fa-solid fa-map-pin text-red-500 mr-1"></i> ${rep.latitude.toFixed(4)}, ${rep.longitude.toFixed(4)}
+                                </p>
+                                <p class="text-[10px] text-gray-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i> ${readableDate}</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    `;
+                });
+            });
 
-            </div>
-        </div>
-    </main>
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+});
 
-    <script>
-        function toggleMobileSidebar() {
-            document.getElementById('mobile-sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('mobile-overlay').classList.toggle('opacity-0');
-            document.getElementById('mobile-overlay').classList.toggle('pointer-events-none');
+// ==========================================
+// VIEW SUBMITTED REPORT DETAILS
+// ==========================================
+window.viewReportDetails = function(reportId) {
+    const rep = window.allUserReports[reportId];
+    if(!rep) return;
+
+    const cssStatus = rep.status.replace(/\s+/g, '');
+    const statusLabel = document.getElementById('det-status');
+    statusLabel.textContent = rep.status;
+    statusLabel.className = `text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider status-${cssStatus}`;
+
+    document.getElementById('det-desc').textContent = rep.description;
+    document.getElementById('det-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${rep.latitude.toFixed(4)}, ${rep.longitude.toFixed(4)}`;
+
+    window.renderImageGrid('det-images', rep.images || []);
+    document.getElementById('details-modal').classList.remove('hidden');
+};
+
+// ==========================================
+// FORM HELPERS
+// ==========================================
+window.handleImageSelect = function() {
+    const input = document.getElementById('report-images');
+    let files = Array.from(input.files);
+    
+    if (files.length > 5) {
+        alert("You can only upload up to 5 images.");
+        input.value = ''; 
+        document.getElementById('image-preview-container').classList.add('hidden');
+        return;
+    }
+
+    if (files.length > 0) {
+        let dataUrls = [];
+        let filesProcessed = 0;
+        
+        for(let i=0; i<files.length; i++) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                dataUrls.push(evt.target.result);
+                filesProcessed++;
+                
+                if(filesProcessed === files.length) {
+                    window.renderImageGrid('image-preview-container', dataUrls);
+                }
+            }
+            reader.readAsDataURL(files[i]);
         }
-        window.closePreview = () => document.getElementById('preview-modal').classList.add('hidden');
-        window.closeDetails = () => document.getElementById('details-modal').classList.add('hidden');
-        window.closeLightbox = () => {
-            document.getElementById('image-lightbox').classList.add('hidden');
-            document.getElementById('lightbox-img').src = '';
+    } else {
+        document.getElementById('image-preview-container').classList.add('hidden');
+    }
+};
+
+window.getLocation = function() {
+    const statusLabel = document.getElementById('location-status');
+    const latInput = document.getElementById('report-lat');
+    const longInput = document.getElementById('report-long');
+    const btnLoc = document.getElementById('btn-location');
+    
+    btnLoc.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Locating...';
+    btnLoc.disabled = true;
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                latInput.value = position.coords.latitude;
+                longInput.value = position.coords.longitude;
+                
+                statusLabel.innerHTML = `<i class="fa-solid fa-map-pin text-red-500"></i> Pinned: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+                statusLabel.classList.remove('hidden', 'text-red-500');
+                statusLabel.classList.add('text-green-600');
+                
+                btnLoc.innerHTML = '<i class="fa-solid fa-check"></i> Location Pinned';
+                btnLoc.classList.replace('bg-brand-primary', 'bg-green-600');
+                btnLoc.classList.replace('hover:bg-[#0f3b68]', 'hover:bg-green-700');
+            }, 
+            (error) => {
+                statusLabel.textContent = `Error: ${error.message}. Please enable location services.`;
+                statusLabel.classList.remove('hidden', 'text-green-600');
+                statusLabel.classList.add('text-red-500');
+                btnLoc.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Get Location';
+                btnLoc.disabled = false;
+            },
+            { enableHighAccuracy: true } 
+        );
+    } else {
+        alert("Geolocation is not supported by your browser.");
+        btnLoc.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Get Location';
+        btnLoc.disabled = false;
+    }
+};
+
+// ==========================================
+// FINAL CONFIRMATION & UPLOAD
+// ==========================================
+window.confirmReportSubmit = async function() {
+    if(!window.pendingReportData) return;
+
+    const { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles } = window.pendingReportData;
+    
+    const btnConfirm = document.getElementById('btn-confirm-submit');
+    const msgBox = document.getElementById('report-msg');
+
+    btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
+    btnConfirm.disabled = true;
+
+    try {
+        let uploadedImageUrls = [];
+
+        if (imageFiles.length > 0) {
+            btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Photos...';
+
+            for (let i = 0; i < imageFiles.length; i++) {
+                const formData = new FormData();
+                formData.append('file', imageFiles[i]);
+                formData.append('upload_preset', uploadPreset);
+
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("Image upload failed.");
+                const imgData = await response.json();
+                uploadedImageUrls.push(imgData.secure_url);
+            }
         }
-    </script>
-</body>
-</html>
+
+        btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving Report...';
+
+        const newReportRef = push(ref(dbRealtime, "reports"));
+        await set(newReportRef, {
+            userId: currentUserId,
+            userName: currentUserName,
+            userContact: currentUserMobile,        
+            userAddress: currentUserAddress,       
+            description: desc,
+            latitude: parseFloat(lat),
+            longitude: parseFloat(long),
+            images: uploadedImageUrls, 
+            status: "Pending", 
+            createdAt: serverTimestamp()
+        });
+
+        document.getElementById('preview-modal').classList.add('hidden');
+        
+        msgBox.textContent = "Report successfully submitted! Thank you for your help.";
+        msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-green-50 text-green-600 block mt-2";
+        msgBox.classList.remove('hidden');
+        
+        document.getElementById('report-form').reset();
+        document.getElementById('image-preview-container').innerHTML = '';
+        document.getElementById('image-preview-container').classList.add('hidden');
+        document.getElementById('report-lat').value = '';
+        document.getElementById('report-long').value = '';
+        
+        const btnLoc = document.getElementById('btn-location');
+        btnLoc.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Get Current Location';
+        btnLoc.classList.replace('bg-green-600', 'bg-brand-primary');
+        btnLoc.classList.replace('hover:bg-green-700', 'hover:bg-[#0f3b68]');
+        btnLoc.disabled = false;
+        document.getElementById('location-status').classList.add('hidden');
+
+        setTimeout(() => { msgBox.classList.add('hidden'); }, 5000);
+        window.pendingReportData = null;
+
+    } catch (error) {
+        console.error(error);
+        document.getElementById('preview-modal').classList.add('hidden');
+        msgBox.textContent = "Submission failed. Please check your connection.";
+        msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-600 block mt-2";
+        msgBox.classList.remove('hidden');
+    } finally {
+        btnConfirm.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Confirm Submit';
+        btnConfirm.disabled = false;
+    }
+};
+
+window.handleLogout = () => signOut(auth).then(() => window.location.href = 'index.html');
