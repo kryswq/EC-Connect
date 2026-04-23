@@ -4,7 +4,6 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 import { getDatabase, ref, push, set, onValue, query, orderByChild, equalTo, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
-// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyBBsWGhsw7hHMOGu4QpLEOjNjKCjq_l2a0",
     authDomain: "fir-ai-app-96845.firebaseapp.com",
@@ -25,19 +24,69 @@ window.fbDb = dbFirestore;
 window.fbRtdb = dbRealtime;
 window.fbFunctions = { onAuthStateChanged, signOut, doc, getDoc, ref, push, set, onValue, query, orderByChild, equalTo, serverTimestamp };
 
-console.log("Firebase initialized for Report Page!");
-
 const cloudName = 'dgoho5phg'; 
 const uploadPreset = 'Report'; 
 
 window.allUserReports = {};
+window.pendingReportData = null; // Store data before confirmation
 
 // ==========================================
-// 1. INITIALIZATION & LISTENER
+// UTILITY: RENDER IMAGE GRID with +X & LIGHTBOX
 // ==========================================
+// This function is used to consistently render images in all Modals and Previews.
+window.renderImageGrid = function(containerId, imageUrlsArray) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    
+    if (!imageUrlsArray || imageUrlsArray.length === 0) {
+        container.parentElement.classList.add('hidden');
+        return;
+    }
+
+    container.parentElement.classList.remove('hidden');
+    container.className = "flex gap-2 mt-3 overflow-hidden rounded-xl w-full"; 
+    
+    const maxVisible = 3; 
+    const visibleImgs = imageUrlsArray.slice(0, maxVisible);
+    const extraCount = imageUrlsArray.length - maxVisible;
+
+    visibleImgs.forEach((src, index) => {
+        const isLastVisible = (index === maxVisible - 1);
+        const hasExtra = extraCount > 0;
+
+        const div = document.createElement('div');
+        div.className = "relative flex-1 h-24 cursor-pointer hover:opacity-90 transition-opacity bg-gray-100 rounded-lg";
+        // Click to open lightbox
+        div.onclick = () => {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('image-lightbox').classList.remove('hidden');
+        };
+
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = "w-full h-full object-cover rounded-lg shadow-sm border border-gray-200";
+        div.appendChild(img);
+
+        if (isLastVisible && hasExtra) {
+            const overlay = document.createElement('div');
+            overlay.className = "absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center transition-colors hover:bg-black/70";
+            const span = document.createElement('span');
+            span.className = "text-white font-bold text-xl drop-shadow-md";
+            span.textContent = `+${extraCount}`;
+            overlay.appendChild(span);
+            div.appendChild(overlay);
+        }
+
+        container.appendChild(div);
+    });
+};
+
+
 window.addEventListener('DOMContentLoaded', () => {
     let currentUserId = null;
     let currentUserName = "Citizen";
+    let currentUserMobile = "Not provided";
+    let currentUserAddress = "Location Not Set";
     
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -48,7 +97,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     currentUserName = `${data.first_name || ''} ${data.last_name || ''}`.trim();
-                    
+                    currentUserMobile = data.mobile || data.mobile_number || "Not provided";
+                    const addressParts = [data.barangay, data.city, data.province].filter(Boolean);
+                    if (addressParts.length > 0) currentUserAddress = addressParts.join(', ');
+
                     const locText = data.city || "Location Not Set";
                     document.getElementById('desktop-sidebar-name').textContent = currentUserName;
                     document.getElementById('mobile-sidebar-name').textContent = currentUserName;
@@ -61,10 +113,66 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) { console.error(e); }
 
+            // 1. INITIAL FORM SUBMIT (TRIGGERS REVIEW MODAL)
             document.getElementById('report-form').addEventListener('submit', function(e) {
-                window.submitReport(e, currentUserId, currentUserName);
+                e.preventDefault();
+                
+                const lat = document.getElementById('report-lat').value;
+                const long = document.getElementById('report-long').value;
+                const desc = document.getElementById('report-description').value;
+                const imageFiles = document.getElementById('report-images').files;
+                const msgBox = document.getElementById('report-msg');
+
+                if (!lat || !long) {
+                    msgBox.textContent = "Please pin your location first.";
+                    msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-600 block mt-2";
+                    msgBox.classList.remove('hidden');
+                    return;
+                }
+                msgBox.classList.add('hidden');
+
+                // Read files into Data URLs for the Preview Modal
+                let dataUrls = [];
+                let filesProcessed = 0;
+                
+                if(imageFiles.length > 0) {
+                    for(let i=0; i<imageFiles.length; i++) {
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            dataUrls.push(evt.target.result);
+                            filesProcessed++;
+                            
+                            // Once all files are read, populate the Review Modal
+                            if(filesProcessed === imageFiles.length) {
+                                window.pendingReportData = { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles };
+                                
+                                document.getElementById('prev-name').textContent = currentUserName;
+                                document.getElementById('prev-number').textContent = currentUserMobile;
+                                document.getElementById('prev-address').textContent = currentUserAddress;
+                                document.getElementById('prev-desc').textContent = desc;
+                                document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
+                                
+                                window.renderImageGrid('prev-images', dataUrls);
+                                document.getElementById('preview-modal').classList.remove('hidden');
+                            }
+                        }
+                        reader.readAsDataURL(imageFiles[i]);
+                    }
+                } else {
+                    window.pendingReportData = { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles: [] };
+                    
+                    document.getElementById('prev-name').textContent = currentUserName;
+                    document.getElementById('prev-number').textContent = currentUserMobile;
+                    document.getElementById('prev-address').textContent = currentUserAddress;
+                    document.getElementById('prev-desc').textContent = desc;
+                    document.getElementById('prev-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${parseFloat(lat).toFixed(4)}, ${parseFloat(long).toFixed(4)}`;
+                    
+                    window.renderImageGrid('prev-images', []);
+                    document.getElementById('preview-modal').classList.remove('hidden');
+                }
             });
 
+            // FETCH REALTIME LIST
             const listContainer = document.getElementById('reports-list');
             const reportQuery = query(ref(dbRealtime, "reports"), orderByChild("userId"), equalTo(currentUserId));
 
@@ -129,6 +237,9 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ==========================================
+// DETAILS MODAL (After clicking a submitted report)
+// ==========================================
 window.viewReportDetails = function(reportId) {
     const rep = window.allUserReports[reportId];
     if(!rep) return;
@@ -141,79 +252,45 @@ window.viewReportDetails = function(reportId) {
     document.getElementById('det-desc').textContent = rep.description;
     document.getElementById('det-loc').innerHTML = `<i class="fa-solid fa-map-pin mr-1.5"></i> ${rep.latitude.toFixed(4)}, ${rep.longitude.toFixed(4)}`;
 
-    const imgContainer = document.getElementById('det-images');
-    const imgSection = document.getElementById('det-img-section');
-    imgContainer.innerHTML = '';
-    
-    if (rep.images && rep.images.length > 0) {
-        imgSection.classList.remove('hidden');
-        rep.images.forEach(imgSrc => {
-            imgContainer.innerHTML += `<img src="${imgSrc}" class="w-24 h-24 object-cover rounded-lg shadow-sm border border-gray-200 shrink-0">`;
-        });
-    } else {
-        imgSection.classList.add('hidden');
-    }
+    // Render using the unified helper
+    window.renderImageGrid('det-images', rep.images || []);
 
     document.getElementById('details-modal').classList.remove('hidden');
 };
 
+
 // ==========================================
-// 3. FIX: ADVANCED +X IMAGE PREVIEW & LIMIT
+// FORM HELPERS
 // ==========================================
 window.handleImageSelect = function() {
     const input = document.getElementById('report-images');
-    const previewContainer = document.getElementById('image-preview-container');
     let files = Array.from(input.files);
-    
-    previewContainer.innerHTML = ''; 
     
     if (files.length > 5) {
         alert("You can only upload up to 5 images.");
         input.value = ''; 
-        previewContainer.classList.add('hidden');
+        document.getElementById('image-preview-container').classList.add('hidden');
         return;
     }
 
     if (files.length > 0) {
-        previewContainer.classList.remove('hidden');
-        previewContainer.className = "flex gap-2 mt-3 overflow-hidden rounded-xl"; 
+        let dataUrls = [];
+        let filesProcessed = 0;
         
-        // Show max 3 images in the preview box to display the +1 or +2
-        const maxVisible = 3; 
-        const visibleFiles = files.slice(0, maxVisible);
-        const extraCount = files.length - maxVisible;
-
-        visibleFiles.forEach((file, index) => {
+        for(let i=0; i<files.length; i++) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const isLastVisible = (index === maxVisible - 1);
-                const hasExtra = extraCount > 0;
+            reader.onload = function(evt) {
+                dataUrls.push(evt.target.result);
+                filesProcessed++;
                 
-                const div = document.createElement('div');
-                div.className = "relative flex-1 h-24";
-                
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = "w-full h-full object-cover rounded-lg shadow-sm border border-gray-200";
-                div.appendChild(img);
-                
-                // If it's the 3rd picture and there are more, add the "+X" overlay
-                if (isLastVisible && hasExtra) {
-                    const overlay = document.createElement('div');
-                    overlay.className = "absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center";
-                    const span = document.createElement('span');
-                    span.className = "text-white font-bold text-xl";
-                    span.textContent = `+${extraCount}`;
-                    overlay.appendChild(span);
-                    div.appendChild(overlay);
+                if(filesProcessed === files.length) {
+                    window.renderImageGrid('image-preview-container', dataUrls);
                 }
-                
-                previewContainer.appendChild(div);
             }
-            reader.readAsDataURL(file);
-        });
+            reader.readAsDataURL(files[i]);
+        }
     } else {
-        previewContainer.classList.add('hidden');
+        document.getElementById('image-preview-container').classList.add('hidden');
     }
 };
 
@@ -256,45 +333,26 @@ window.getLocation = function() {
     }
 };
 
-window.submitReport = async function(e, currentUserId, currentUserName) {
-    e.preventDefault();
+// ==========================================
+// FINAL CONFIRMATION & UPLOAD TO FIREBASE
+// ==========================================
+window.confirmReportSubmit = async function() {
+    if(!window.pendingReportData) return;
+
+    const { currentUserId, currentUserName, currentUserMobile, currentUserAddress, desc, lat, long, imageFiles } = window.pendingReportData;
     
-    const description = document.getElementById('report-description').value;
-    const lat = document.getElementById('report-lat').value;
-    const long = document.getElementById('report-long').value;
-    const imageFiles = document.getElementById('report-images').files;
+    const btnConfirm = document.getElementById('btn-confirm-submit');
     const msgBox = document.getElementById('report-msg');
-    const btn = document.getElementById('btn-submit-report');
 
-    if (!lat || !long) {
-        msgBox.textContent = "Please pin your location first.";
-        msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-600 block mt-2";
-        msgBox.classList.remove('hidden');
-        return;
-    }
-
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading and Submitting...';
-    btn.disabled = true;
-    msgBox.classList.add('hidden');
+    btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
+    btnConfirm.disabled = true;
 
     try {
-        let userMobile = "Not provided";
-        let userAddress = "Location Not Set";
-        
-        const docRef = doc(dbFirestore, "profile", currentUserId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            userMobile = data.mobile || data.mobile_number || "Not provided";
-            const addressParts = [data.barangay, data.city, data.province].filter(Boolean);
-            if (addressParts.length > 0) userAddress = addressParts.join(', ');
-        }
-
         let uploadedImageUrls = [];
+
+        // Upload to Cloudinary
         if (imageFiles.length > 0) {
-            msgBox.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Uploading ${imageFiles.length} image(s)...`;
-            msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-blue-50 text-blue-600 block mt-2";
-            msgBox.classList.remove('hidden');
+            btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Photos...';
 
             for (let i = 0; i < imageFiles.length; i++) {
                 const formData = new FormData();
@@ -312,15 +370,16 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
             }
         }
 
-        msgBox.innerHTML = `<i class="fa-solid fa-database"></i> Saving report...`;
+        btnConfirm.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving Report...';
 
+        // Save to Firebase
         const newReportRef = push(ref(dbRealtime, "reports"));
         await set(newReportRef, {
             userId: currentUserId,
             userName: currentUserName,
-            userContact: userMobile,        
-            userAddress: userAddress,       
-            description: description,
+            userContact: currentUserMobile,        
+            userAddress: currentUserAddress,       
+            description: desc,
             latitude: parseFloat(lat),
             longitude: parseFloat(long),
             images: uploadedImageUrls, 
@@ -328,6 +387,9 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
             createdAt: serverTimestamp()
         });
 
+        // Cleanup and Success
+        document.getElementById('preview-modal').classList.add('hidden');
+        
         msgBox.textContent = "Report successfully submitted! Thank you for your help.";
         msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-green-50 text-green-600 block mt-2";
         msgBox.classList.remove('hidden');
@@ -346,15 +408,17 @@ window.submitReport = async function(e, currentUserId, currentUserName) {
         document.getElementById('location-status').classList.add('hidden');
 
         setTimeout(() => { msgBox.classList.add('hidden'); }, 5000);
+        window.pendingReportData = null;
 
     } catch (error) {
         console.error(error);
+        document.getElementById('preview-modal').classList.add('hidden');
         msgBox.textContent = "Submission failed. Please check your connection.";
         msgBox.className = "p-3 rounded-xl text-sm font-bold text-center bg-red-50 text-red-600 block mt-2";
         msgBox.classList.remove('hidden');
     } finally {
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Report';
-        btn.disabled = false;
+        btnConfirm.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Confirm Submit';
+        btnConfirm.disabled = false;
     }
 };
 
