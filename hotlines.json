@@ -12,7 +12,7 @@
     "displayName": "Maragondon, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0977-388-3439 / 0998-598-5619", "icon": "fa-shield-halved", "color": "blue" },
-      { "type": "Fire Department", "number": "             ", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "Fire Department", "number": "(046) 412 1911", "icon": "fa-fire-extinguisher", "color": "red" },
       { "type": "MDRRMO / Rescue", "number": "0906-568-0500", "icon": "fa-truck-medical", "color": "orange" },
       { "type": "Rural Health Unit", "number": "(046) 412-19-11 / 0917-823-1249", "icon": "fa-hospital", "color": "green" }
     ]
