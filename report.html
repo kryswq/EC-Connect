@@ -18,11 +18,11 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        #desktop-sidebar { width: 5.5rem; transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease; overflow-x: hidden; white-space: nowrap; }
+        #desktop-sidebar { width: 5.5rem; transition: width 0.3s ease, box-shadow 0.3s ease; overflow-x: hidden; white-space: nowrap; }
         #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
         #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
         #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); pointer-events: auto; }
-        #mobile-sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        #mobile-sidebar { transition: transform 0.4s ease; }
         #mobile-overlay { transition: opacity 0.3s ease; }
 
         /* Report Status Badges */
@@ -35,6 +35,53 @@
 
     <div id="mobile-overlay" class="fixed inset-0 bg-brand-primary/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
     
+    <div id="image-lightbox" class="fixed inset-0 bg-black/95 z-[200] hidden flex items-center justify-center p-4 transition-opacity">
+        <button onclick="window.closeLightbox()" class="absolute top-6 right-6 text-white/70 hover:text-white transition-colors w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full">
+            <i class="fa-solid fa-xmark text-2xl"></i>
+        </button>
+        <img id="lightbox-img" src="" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl select-none">
+    </div>
+
+    <div id="preview-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-magnifying-glass mr-2 text-brand-primary"></i>Review Report</h3>
+                <button onclick="window.closePreview()" class="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto hide-scroll flex-1 flex flex-col gap-5">
+                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                    <p class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Reporter Details</p>
+                    <p class="text-sm font-semibold text-gray-900" id="prev-name">Loading...</p>
+                    <p class="text-sm text-gray-600 mt-1"><i class="fa-solid fa-phone mr-1.5 text-gray-400"></i><span id="prev-number">Loading...</span></p>
+                    <p class="text-sm text-gray-600 mt-1"><i class="fa-solid fa-house mr-1.5 text-gray-400"></i><span id="prev-address">Loading...</span></p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Issue Description</p>
+                    <p class="text-sm font-medium text-gray-800 bg-gray-50 p-4 rounded-xl border border-gray-100" id="prev-desc"></p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Location Pinned</p>
+                    <p class="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100" id="prev-loc"></p>
+                </div>
+
+                <div id="prev-img-section" class="hidden">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Photos</p>
+                    <div id="prev-images"></div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-100 bg-white grid grid-cols-2 gap-3">
+                <button onclick="window.closePreview()" class="py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Edit</button>
+                <button onclick="window.confirmReportSubmit()" id="btn-confirm-submit" class="py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Confirm Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="details-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
@@ -60,7 +107,7 @@
 
                 <div id="det-img-section" class="hidden">
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Photos</p>
-                    <div id="det-images" class="flex gap-3 overflow-x-auto pb-2 hide-scroll"></div>
+                    <div id="det-images"></div>
                 </div>
             </div>
 
@@ -77,17 +124,13 @@
             <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
         </div>
         <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium">Home</span></a>
-            
-            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium">EC Feed</span></a>
-            
-            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="ml-4 font-medium">Appointments</span></a>
-            
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Profile</span></a>
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium">Home</span></a>
+            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium">EC Feed</span></a>
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="ml-4 font-medium">Appointments</span></a>
+            <a href="report.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-red-500 bg-red-50 text-red-600"><i class="fa-solid fa-bullhorn text-xl w-6 text-center"></i><span class="ml-4 font-semibold">Report Issue</span></a>
+            <a href="request.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-file-signature text-xl w-6 text-center"></i><span class="ml-4 font-medium">Request Doc</span></a>
+            <a href="emergency.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-truck-medical text-xl w-6 text-center"></i><span class="ml-4 font-medium">Emergency</span></a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Profile</span></a>
         </nav>
         <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
             <a href="#" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium">Log Out</span></a>
@@ -107,17 +150,13 @@
             <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight">EC<span class="text-brand-secondary">Connect</span></span>
         </div>
         <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Dashboard</span></a>
-            
-            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">CivicFeed</span></a>
-            
-            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Appointments</span></a>
-            
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Profie</span></a>
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Dashboard</span></a>
+            <a href="feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">CivicFeed</span></a>
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-regular fa-calendar-check text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Appointments</span></a>
+            <a href="report.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-red-500 bg-red-50 text-red-600"><i class="fa-solid fa-bullhorn text-xl w-6 text-center"></i><span class="nav-text ml-4 font-semibold">Report Issue</span></a>
+            <a href="request.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-file-signature text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Request Doc</span></a>
+            <a href="emergency.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-truck-medical text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Emergency</span></a>
+            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary"><i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Profile</span></a>
         </nav>
         <div class="mt-auto px-3 pt-4">
             <a href="#" onclick="window.handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Log Out</span></a>
@@ -135,11 +174,9 @@
         <header class="h-16 px-6 md:px-8 flex items-center justify-between bg-[#E0F2FE]/80 backdrop-blur-md sticky top-0 border-b border-white/40 z-30">
             <div class="flex items-center gap-4">
                 <button onclick="toggleMobileSidebar()" class="lg:hidden text-brand-primary"><i class="fa-solid fa-bars text-xl"></i></button>
-                
                 <a href="home.html" class="flex items-center justify-center w-8 h-8 rounded-full bg-white/50 text-brand-primary hover:bg-white hover:shadow-sm transition-all border border-gray-200">
                     <i class="fa-solid fa-arrow-left"></i>
                 </a>
-
                 <div class="text-sm font-medium text-gray-500">Citizen Connect / <span class="text-red-600 font-semibold">Report Issue</span></div>
             </div>
         </header>
@@ -149,7 +186,6 @@
                 
                 <div class="w-full lg:w-[45%] flex flex-col gap-6">
                     <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-                        
                         <div class="flex items-center gap-3 border-b border-gray-50 pb-5 mb-5">
                             <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-triangle-exclamation text-lg"></i>
@@ -161,10 +197,9 @@
                         </div>
                         
                         <form id="report-form" class="flex flex-col gap-5">
-                            
                             <div>
                                 <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Describe the Problem</label>
-                                <textarea id="report-description" rows="3" required placeholder="E.g., Madilim at pundi ang poste sa kanto namin..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-red-400 focus:bg-white transition-all resize-none text-sm font-semibold text-gray-700"></textarea>
+                                <textarea id="report-description" rows="3" required placeholder="E.g., Dark and broken streetlight at our corner..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-red-400 focus:bg-white transition-all resize-none text-sm font-semibold text-gray-700"></textarea>
                             </div>
 
                             <div>
@@ -172,7 +207,6 @@
                                 <div class="relative w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl px-4 py-6 text-center cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all group">
                                     <i class="fa-solid fa-camera text-3xl text-gray-300 group-hover:text-red-400 mb-2 transition-colors"></i>
                                     <p class="text-xs text-gray-500 font-medium group-hover:text-red-500">Tap to Take a Photo or Upload</p>
-                                    
                                     <input type="file" id="report-images" multiple accept="image/*" onchange="window.handleImageSelect()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                 </div>
                                 <div id="image-preview-container" class="hidden mt-3"></div>
@@ -192,8 +226,8 @@
 
                             <p id="report-msg" class="hidden p-3 rounded-xl text-sm font-semibold text-center"></p>
                             
-                            <button type="submit" id="btn-submit-report" class="w-full py-4 mt-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 active:scale-[0.98] shadow-md transition-all flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-paper-plane"></i> Submit Report
+                            <button type="submit" id="btn-trigger-preview" class="w-full py-4 mt-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 active:scale-[0.98] shadow-md transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-eye"></i> Review & Submit
                             </button>
                         </form>
                     </div>
@@ -228,9 +262,11 @@
             document.getElementById('mobile-overlay').classList.toggle('opacity-0');
             document.getElementById('mobile-overlay').classList.toggle('pointer-events-none');
         }
-
-        window.closeDetails = () => {
-            document.getElementById('details-modal').classList.add('hidden');
+        window.closePreview = () => document.getElementById('preview-modal').classList.add('hidden');
+        window.closeDetails = () => document.getElementById('details-modal').classList.add('hidden');
+        window.closeLightbox = () => {
+            document.getElementById('image-lightbox').classList.add('hidden');
+            document.getElementById('lightbox-img').src = '';
         }
     </script>
 </body>
