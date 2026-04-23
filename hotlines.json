@@ -1,28 +1,70 @@
 {
-  "rosario": {
-    "displayName": "Rosario, Cavite",
+  "Tanza": {
+    "displayName": "Tanza, Cavite",
     "contacts": [
-      { "type": "Police Station", "number": "0998-598-5595", "icon": "fa-shield-halved", "color": "blue" },
-      { "type": "Fire Department", "number": "(046) 438-1022 / 0912-345-6789", "icon": "fa-fire-extinguisher", "color": "red" },
-      { "type": "MDRRMO / Rescue", "number": "0905-111-2222", "icon": "fa-truck-medical", "color": "orange" },
-      { "type": "General Hospital", "number": "(046) 438-2222", "icon": "fa-hospital", "color": "green" }
+      { "type": "Police Station", "number": "0905-330 0756", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "0945-175 8652 / 0968-347 9894", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "MDRRMO / Rescue", "number": "0977 - 345 5035", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "Coast Guard", "number": "0916 - 793 2511", "icon": "fa-hospital", "color": "green" }
     ]
   },
-  "maragondon": {
+  "Maragondon": {
     "displayName": "Maragondon, Cavite",
     "contacts": [
-      { "type": "Police Station", "number": "0998-598-5606 / 0922-123-4567", "icon": "fa-shield-halved", "color": "blue" },
-      { "type": "Fire Department", "number": "(046) 412-2222 / 0998-765-4321", "icon": "fa-fire-extinguisher", "color": "red" },
-      { "type": "MDRRMO / Rescue", "number": "0917-888-9999", "icon": "fa-truck-medical", "color": "orange" },
-      { "type": "Rural Health Unit", "number": "(046) 412-1111", "icon": "fa-hospital", "color": "green" }
+      { "type": "Police Station", "number": "0977-388-3439 / 0998-598-5619", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "             ", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "MDRRMO / Rescue", "number": "0906-568-0500", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "Rural Health Unit", "number": "(046) 412-19-11 / 0917-823-1249", "icon": "fa-hospital", "color": "green" }
     ]
   },
-  "general trias": {
+  "General Trias": {
     "displayName": "General Trias, Cavite",
     "contacts": [
-      { "type": "Police Station", "number": "(046) 437-7242", "icon": "fa-shield-halved", "color": "blue" },
-      { "type": "Fire Department", "number": "(046) 437-7243 / 0919-000-0000", "icon": "fa-fire-extinguisher", "color": "red" },
-      { "type": "CDRRMO", "number": "(046) 402-0000", "icon": "fa-truck-medical", "color": "orange" }
+      { "type": "Police Station", "number": "0916 726 5908", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "0967 429 0363", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "CDRRMO", "number": "(046) 409 7303 / 0919 077 1760", "icon": "fa-truck-medical", "color": "orange" }
+    ]
+     },
+  "Naic": {
+    "displayName": "Naic, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "0998-598-5621", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "0956-4830-226 / 0956-480-753", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "MDRRMO / Rescue", "number": "410-5725 / 0917-812-8187", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "MHO", "number": "(046) 889 9316 / (046) 889 0499", "icon": "fa-hospital", "color": "green" }
+    ]
+     },
+  "Dasmariñas": {
+    "displayName": "Dasmariñas, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "0956-800-3329 / 0995-598-5598", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "0995-598-5598", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "CDRRMO / Rescue", "number": "0917-721-8825 / (046) 513-1766", "icon": "fa-truck-medical", "color": "orange" },
+      { "type": "CHO", "number": "(046) 416-08-09", "icon": "fa-hospital", "color": "green" }
+    ]
+         },
+  "Imus": {
+    "displayName": "Imus, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "0998-598-5601", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "0915-528-3256", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "CDRRMO / Rescue", "number": "0939-912-0887 / (046) 472-2618", "icon": "fa-truck-medical", "color": "orange" },
+    ]
+             },
+  "Bacoor": {
+    "displayName": "Bacoor, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "0977-752-0819", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "0966-695-9711", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "BDRRMO / Rescue", "number": "(046) 417-0727", "icon": "fa-truck-medical", "color": "orange" },
+    ]
+                },
+  "Cavite City": {
+    "displayName": "Cavite City, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "0906-360-6656", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "0908-950-8557 / 0966-694-1416", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "CDRRMO / Rescue", "number": "0926-970-7556", "icon": "fa-truck-medical", "color": "orange" },
     ]
   }
 }
