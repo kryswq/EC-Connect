@@ -1,5 +1,5 @@
 {
-  "Tanza": {
+  "tanza": {
     "displayName": "Tanza, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0905-330 0756", "icon": "fa-shield-halved", "color": "blue" },
@@ -8,7 +8,7 @@
       { "type": "Coast Guard", "number": "0916 - 793 2511", "icon": "fa-hospital", "color": "green" }
     ]
   },
-  "Maragondon": {
+  "maragondon": {
     "displayName": "Maragondon, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0977-388-3439 / 0998-598-5619", "icon": "fa-shield-halved", "color": "blue" },
@@ -17,7 +17,7 @@
       { "type": "Rural Health Unit", "number": "(046) 412-19-11 / 0917-823-1249", "icon": "fa-hospital", "color": "green" }
     ]
   },
-  "General Trias": {
+  "general trias": {
     "displayName": "General Trias, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0916 726 5908", "icon": "fa-shield-halved", "color": "blue" },
@@ -25,7 +25,7 @@
       { "type": "CDRRMO", "number": "(046) 409 7303 / 0919 077 1760", "icon": "fa-truck-medical", "color": "orange" }
     ]
      },
-  "Naic": {
+  "naic": {
     "displayName": "Naic, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0998-598-5621", "icon": "fa-shield-halved", "color": "blue" },
@@ -34,7 +34,7 @@
       { "type": "MHO", "number": "(046) 889 9316 / (046) 889 0499", "icon": "fa-hospital", "color": "green" }
     ]
      },
-  "Dasmariñas": {
+  "dasmariñas": {
     "displayName": "Dasmariñas, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0956-800-3329 / 0995-598-5598", "icon": "fa-shield-halved", "color": "blue" },
@@ -43,7 +43,7 @@
       { "type": "CHO", "number": "(046) 416-08-09", "icon": "fa-hospital", "color": "green" }
     ]
          },
-  "Imus": {
+  "imus": {
     "displayName": "Imus, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0998-598-5601", "icon": "fa-shield-halved", "color": "blue" },
@@ -51,7 +51,7 @@
       { "type": "CDRRMO / Rescue", "number": "0939-912-0887 / (046) 472-2618", "icon": "fa-truck-medical", "color": "orange" }
     ]
              },
-  "Bacoor": {
+  "bacoor": {
     "displayName": "Bacoor, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0977-752-0819", "icon": "fa-shield-halved", "color": "blue" },
@@ -60,7 +60,7 @@
     ]
   },
     
-  "Cavite City": {
+  "cavite city": {
     "displayName": "Cavite City, Cavite",
     "contacts": [
       { "type": "Police Station", "number": "0906-360-6656", "icon": "fa-shield-halved", "color": "blue" },
