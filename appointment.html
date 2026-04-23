@@ -11,18 +11,32 @@
     <script src="tailwind-theme.js"></script> 
 
     <style>
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #E0F2FE; margin: 0; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden; 
+            background-color: #E0F2FE; 
+            margin: 0; 
+        }
         
         /* SCROLLBARS */
         .hide-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         /* SIDEBARS */
-        #desktop-sidebar { width: 5.5rem; transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease; overflow-x: hidden; white-space: nowrap; }
+        #desktop-sidebar { 
+            width: 5.5rem; 
+            transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease; 
+            overflow-x: hidden; 
+            white-space: nowrap; 
+        }
         #desktop-sidebar:hover { width: 16rem; box-shadow: 10px 0 25px rgba(0,0,0,0.05); }
         #desktop-sidebar .nav-text { opacity: 0; transform: translateX(-10px); transition: all 0.2s ease; pointer-events: none; }
-        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        #desktop-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); transition-delay: 0.1s; pointer-events: auto; }
         #mobile-sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         #mobile-overlay { transition: opacity 0.3s ease; }
 
@@ -53,73 +67,91 @@
     <div id="mobile-overlay" class="fixed inset-0 bg-brand-primary/50 backdrop-blur-sm z-[60] lg:hidden opacity-0 pointer-events-none" onclick="toggleMobileSidebar()"></div>
     
     <aside id="mobile-sidebar" class="bg-white h-full w-[17rem] max-w-[85vw] flex flex-col fixed z-[70] top-0 left-0 -translate-x-full lg:hidden rounded-r-[1.5rem] py-6 border-r border-gray-100 shadow-2xl transition-transform">
-        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="toggleMobileSidebar()" class="absolute top-6 right-5 text-gray-400 hover:text-brand-accent active:text-brand-accent-active transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
         <div class="flex items-center px-6 mb-8 shrink-0">
             <div class="w-10 h-10 flex items-center justify-center shrink-0">
                 <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="EC Logo" class="w-full h-full object-contain">
             </div>
             <span class="font-bold text-brand-primary ml-4 text-lg tracking-tight">EC <span class="text-brand-secondary">Connect</span></span>
         </div>
+
         <nav class="flex-1 flex flex-col gap-2 px-4 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="ml-4 font-medium">Home</span></a>
-            
-            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="ml-4 font-medium">EC Feed</span></a>
-            
-            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary">
-                <i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i><span class="ml-4 font-semibold">Appointments</span></a>
-            
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="ml-4 font-medium">Profile</span></a>
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">Home</span>
+            </a>
+            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">EC Feed</span>
+            </a>
+            <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary active:bg-green-100 transition-colors">
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i>
+                <span class="ml-4 font-semibold text-[15px]">Appointments</span>
+            </a>
         </nav>
         
         <div class="mt-auto px-4 pt-4 shrink-0 flex flex-col gap-2">
-            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="ml-4 font-medium">Log Out</span></a>
-            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
+            <a href="index.html" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i>
+                <span class="ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            <a href="profile.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100 overflow-hidden w-full mt-2">
                 <img id="mobile-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
                 <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
                     <span id="mobile-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
                     <span id="mobile-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
                 </div>
-            </div>
+            </a>
         </div>
     </aside>
 
-    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-50 top-0 left-0 rounded-tr-[2rem] py-6 border-r border-gray-100 shadow-sm">
+    <aside id="desktop-sidebar" class="bg-white h-full hidden lg:flex flex-col fixed z-[60] top-0 left-0 rounded-tr-[2rem] rounded-br-none py-6 border-r border-gray-100 shadow-sm relative">
         <div class="flex items-center px-5 mb-8 shrink-0 h-10 mt-2">
-            <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-10 h-10 object-contain">
-            <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight">EC<span class="text-brand-secondary">Connect</span></span>
+            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                <img src="https://res.cloudinary.com/dp6x9xmku/image/upload/v1775712263/EC-Connect_logo_spqhed.png" alt="Logo" class="w-full h-full object-contain">
+            </div>
+            <span class="nav-text font-bold text-brand-primary ml-4 text-lg tracking-tight cursor-default">EC<span class="text-brand-secondary">Connect</span></span>
         </div>
+
         <nav class="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scroll">
-            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Home</span></a>
-            
-            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">EC Feed</span></a>
-            
+            <a href="home.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
+                <i class="fa-solid fa-border-all text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">Home</span>
+            </a>
+            <a href="ec_feed.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-primary active:text-brand-accent active:bg-green-50 transition-colors">
+                <i class="fa-regular fa-newspaper text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">EC Feed</span>
+            </a>
             <a href="appointment.html" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-brand-accent bg-green-50 text-brand-primary">
-                <i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i><span class="nav-text ml-4 font-semibold">Appointments</span></a>
-            
-            <a href="profile.html" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-brand-primary">
-                <i class="fa-solid fa-gear text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Profile</span></a>
+                <i class="fa-regular fa-calendar-check text-xl w-6 text-center text-brand-primary"></i>
+                <span class="nav-text ml-4 font-semibold text-[15px]">Appointments</span>
+            </a>
         </nav>
-        <div class="mt-auto px-3 pt-4">
-            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full"><i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i><span class="nav-text ml-4 font-medium">Log Out</span></a>
-            <div class="flex items-center p-2 rounded-xl bg-gray-50 border border-brand-primary/10 overflow-hidden w-full cursor-default mt-2">
+
+        <div class="mt-auto px-3 pt-4 shrink-0 flex flex-col gap-2">
+            <a href="index.html" onclick="handleLogout()" class="flex items-center px-4 py-3 rounded-xl border-l-[3px] border-transparent text-red-500 hover:bg-red-50 active:bg-red-100 w-full transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl w-6 text-center"></i>
+                <span class="nav-text ml-4 font-medium text-[15px]">Log Out</span>
+            </a>
+            <a href="profile.html" class="flex items-center p-2 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100 overflow-hidden w-full mt-2">
                 <img id="desktop-sidebar-pic" src="https://ui-avatars.com/api/?name=User&background=15518D&color=fff" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-200 shrink-0 object-cover">
                 <div class="nav-text ml-3 flex flex-col justify-center overflow-hidden">
                     <span id="desktop-sidebar-name" class="font-bold text-gray-900 text-[15px] leading-tight truncate">Loading...</span>
                     <span id="desktop-sidebar-location" class="text-[10px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wide truncate">Location...</span>
                 </div>
-            </div>
+            </a>
         </div>
     </aside>
 
-    <main class="flex-1 lg:ml-[5.5rem] flex flex-col min-w-0 w-full h-screen">
-        <header class="h-16 px-6 md:px-8 flex items-center justify-between bg-[#E0F2FE]/80 backdrop-blur-md sticky top-0 border-b border-white/40 z-30">
+    <main class="flex-1 lg:ml-[5.5rem] flex flex-col relative min-w-0 w-full h-screen">
+        <header class="h-16 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#E0F2FE]/80 backdrop-blur-md z-30 sticky top-0 border-b border-white/40">
             <div class="flex items-center gap-4">
-                <button onclick="toggleMobileSidebar()" class="lg:hidden text-brand-primary"><i class="fa-solid fa-bars text-xl"></i></button>
+                <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-brand-primary hover:bg-white hover:shadow-sm active:bg-gray-100 rounded-full transition-all focus:outline-none -ml-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
                 <div class="text-sm font-medium text-gray-500">Portal / <span class="text-brand-primary font-semibold">Appointments</span></div>
             </div>
         </header>
@@ -146,12 +178,11 @@
                                     <option value="">Select Office...</option>
                                     <option value="Mayor's Office">Mayor's Office</option>
                                     <option value="Civil Registry">Civil Registry</option>
-                                    <option value="Health Center">City Planning & Development Office (CPDO)</option>
-                                    <option value="Health Center">Office of the Building Official (OBO)</option>
-                                    <option value="Health Center">City Health Office</option>
-                                    <option value="Health Center">Tax payments</option>
-                                    <option value="Health Center">Business Permit</option>
-                                    <option value="Health Center">Civil Registry</option>
+                                    <option value="City Planning & Development Office">City Planning & Development Office (CPDO)</option>
+                                    <option value="Office of the Building Official">Office of the Building Official (OBO)</option>
+                                    <option value="City Health Office">City Health Office</option>
+                                    <option value="Tax Payments">Tax Payments</option>
+                                    <option value="Business Permit">Business Permit</option>
                                 </select>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
