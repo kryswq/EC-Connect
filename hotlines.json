@@ -67,5 +67,13 @@
       { "type": "Fire Department", "number": "0908-950-8557 / 0966-694-1416", "icon": "fa-fire-extinguisher", "color": "red" },
       { "type": "CDRRMO / Rescue", "number": "0926-970-7556", "icon": "fa-truck-medical", "color": "orange" }
     ]
+  },
+    "rosario": {
+    "displayName": "Rosario, Cavite",
+    "contacts": [
+      { "type": "Police Station", "number": "(046) 438-1548", "icon": "fa-shield-halved", "color": "blue" },
+      { "type": "Fire Department", "number": "(046) 438-1616 / 0935-462-2522", "icon": "fa-fire-extinguisher", "color": "red" },
+      { "type": "MDRRMC / Rescue", "number": "0945-655-5002", "icon": "fa-truck-medical", "color": "orange" }
+    ]
   }
 }
